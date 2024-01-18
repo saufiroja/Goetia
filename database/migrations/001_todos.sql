@@ -1,0 +1,12 @@
+\c todos
+
+DROP TABLE IF EXISTS todos;
+
+CREATE TABLE todos (
+    todo_id varchar(255) PRIMARY KEY NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    completed BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
