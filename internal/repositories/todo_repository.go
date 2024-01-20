@@ -10,7 +10,7 @@ import (
 type repository struct {
 }
 
-func NewRepository() TodoRepository {
+func NewRepository() ITodoRepository {
 	return &repository{}
 }
 

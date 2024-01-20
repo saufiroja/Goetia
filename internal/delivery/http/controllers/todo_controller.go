@@ -2,25 +2,22 @@ package controllers
 
 import (
 	"github.com/julienschmidt/httprouter"
-	"github.com/saufiroja/cqrs/internal/handlers/command"
-	"github.com/saufiroja/cqrs/internal/handlers/query"
+	"github.com/saufiroja/cqrs/internal/handlers"
 	"net/http"
 )
 
 type Controllers struct {
-	command command.InsertTodoCommand
-	Query   query.GetAllTodoQuery
+	handler handlers.TodoHandler
 }
 
-func NewControllers(command command.InsertTodoCommand, query query.GetAllTodoQuery) TodoController {
+func NewControllers(handler handlers.TodoHandler) ITodoController {
 	return &Controllers{
-		command: command,
-		Query:   query,
+		handler: handler,
 	}
 }
 
 func (c *Controllers) InsertTodo(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	err := c.command.Handle(w, r)
+	err := c.handler.Command.InsertTodoCommand.Handle(w, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -30,7 +27,7 @@ func (c *Controllers) InsertTodo(w http.ResponseWriter, r *http.Request, params 
 }
 
 func (c *Controllers) GetAllTodo(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	err := c.Query.Handle(w, r)
+	err := c.handler.Query.GetAllTodoQuery.Handle(w, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

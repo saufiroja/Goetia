@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-type TodoController interface {
+type ITodoController interface {
 	InsertTodo(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	GetAllTodo(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 }

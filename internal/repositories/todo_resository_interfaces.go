@@ -7,7 +7,7 @@ import (
 	"github.com/saufiroja/cqrs/internal/contracts/responses"
 )
 
-type TodoRepository interface {
+type ITodoRepository interface {
 	InsertTodo(ctx context.Context, tx *sql.Tx, todo *requests.TodoRequest) error
 	GetAllTodos(ctx context.Context, db *sql.DB) ([]responses.GetAllTodoResponse, error)
 }

@@ -5,7 +5,7 @@ import (
 	"github.com/saufiroja/cqrs/internal/contracts/responses"
 )
 
-type TodoService interface {
+type ITodoService interface {
 	InsertTodo(input *requests.TodoRequest) error
 	GetAllTodo() ([]responses.GetAllTodoResponse, error)
 }

@@ -7,11 +7,15 @@ import (
 	"net/http"
 )
 
-type GetAllTodoQuery struct {
-	todoService services.TodoService
+type IGetAllTodoQuery interface {
+	Handle(w http.ResponseWriter, r *http.Request) error
 }
 
-func NewGetAllTodoQuery(todoService services.TodoService) *GetAllTodoQuery {
+type GetAllTodoQuery struct {
+	todoService services.ITodoService
+}
+
+func NewGetAllTodoQuery(todoService services.ITodoService) IGetAllTodoQuery {
 	return &GetAllTodoQuery{
 		todoService: todoService,
 	}
