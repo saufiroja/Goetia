@@ -45,3 +45,33 @@ func (c *Controllers) GetTodoById(w http.ResponseWriter, r *http.Request, params
 
 	return
 }
+
+func (c *Controllers) UpdateTodoById(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	err := c.handler.Command.UpdateTodoCommand.Handle(w, r, params)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	return
+}
+
+func (c *Controllers) UpdateStatusTodoById(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	err := c.handler.Command.UpdateStatusTodoByIdCommand.Handle(w, r, params)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	return
+}
+
+func (c *Controllers) DeleteTodoById(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	err := c.handler.Command.DeleteTodoByIdCommand.Handle(w, r, params)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	return
+}

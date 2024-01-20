@@ -19,9 +19,17 @@ func NewTodoHandler(todoService services.ITodoService) *TodoHandler {
 	getTodoByIdQeury := query.NewGetTodoByIdQuery(todoService)
 
 	insertTodoCommand := command.NewInsertTodoCommand(todoService, validation)
+	updateTodoByIdCommand := command.NewUpdateTodoCommand(todoService, validation)
+	updateTodoStatusByIdCommand := command.NewUpdateStatusTodoByIdCommand(todoService)
+	deleteTodoByIdCommand := command.NewDeleteTodoByIdCommand(todoService)
 
 	todoQuery := query.NewTodoQuery(getAllTodoQuery, getTodoByIdQeury)
-	todoCommands := command.NewTodoCommand(insertTodoCommand)
+	todoCommands := command.NewTodoCommand(
+		insertTodoCommand,
+		updateTodoByIdCommand,
+		updateTodoStatusByIdCommand,
+		deleteTodoByIdCommand,
+	)
 
 	return &TodoHandler{
 		Query:   *todoQuery,

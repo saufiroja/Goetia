@@ -57,3 +57,33 @@ func (r *repository) GetTodoById(ctx context.Context, db *sql.DB, todoId string)
 
 	return todo, nil
 }
+
+func (r *repository) UpdateTodoById(ctx context.Context, tx *sql.Tx, todo *requests.UpdateTodoRequest) error {
+	query := `UPDATE todos SET title = $1, description = $2, completed = $3, updated_at = $4 WHERE todo_id = $5`
+	_, err := tx.ExecContext(ctx, query, todo.Title, todo.Description, todo.Completed, todo.UpdatedAt, todo.TodoId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *repository) UpdateTodoStatusById(ctx context.Context, tx *sql.Tx, todo *requests.UpdateTodoStatusRequest) error {
+	query := `UPDATE todos SET completed = $1, updated_at = $2 WHERE todo_id = $3`
+	_, err := tx.ExecContext(ctx, query, todo.Completed, todo.UpdatedAt, todo.TodoId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *repository) DeleteTodoById(ctx context.Context, tx *sql.Tx, todoId string) error {
+	query := `DELETE FROM todos WHERE todo_id = $1`
+	_, err := tx.ExecContext(ctx, query, todoId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
