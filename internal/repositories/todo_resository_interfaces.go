@@ -10,4 +10,5 @@ import (
 type ITodoRepository interface {
 	InsertTodo(ctx context.Context, tx *sql.Tx, todo *requests.TodoRequest) error
 	GetAllTodos(ctx context.Context, db *sql.DB) ([]responses.GetAllTodoResponse, error)
+	GetTodoById(ctx context.Context, db *sql.DB, todoId string) (responses.GetTodoByIdResponse, error)
 }

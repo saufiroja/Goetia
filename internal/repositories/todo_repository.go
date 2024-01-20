@@ -44,3 +44,16 @@ func (r *repository) GetAllTodos(ctx context.Context, db *sql.DB) ([]responses.G
 
 	return todos, nil
 }
+
+func (r *repository) GetTodoById(ctx context.Context, db *sql.DB, todoId string) (responses.GetTodoByIdResponse, error) {
+	query := `SELECT todo_id, title, description, completed, created_at, updated_at FROM todos WHERE todo_id = $1`
+	row := db.QueryRowContext(ctx, query, todoId)
+
+	var todo responses.GetTodoByIdResponse
+	err := row.Scan(&todo.TodoId, &todo.Title, &todo.Description, &todo.Completed, &todo.CreatedAt, &todo.UpdatedAt)
+	if err != nil {
+		return todo, err
+	}
+
+	return todo, nil
+}

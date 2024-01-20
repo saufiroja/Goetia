@@ -8,4 +8,5 @@ import (
 type ITodoService interface {
 	InsertTodo(input *requests.TodoRequest) error
 	GetAllTodo() ([]responses.GetAllTodoResponse, error)
+	GetTodoById(todoId string) (responses.GetTodoByIdResponse, error)
 }

@@ -35,3 +35,13 @@ func (c *Controllers) GetAllTodo(w http.ResponseWriter, r *http.Request, params 
 
 	return
 }
+
+func (c *Controllers) GetTodoById(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	err := c.handler.Query.GetTodoByIdQuery.Handle(w, r, params)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	return
+}

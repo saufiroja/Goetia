@@ -61,3 +61,16 @@ func (s *service) GetAllTodo() ([]responses.GetAllTodoResponse, error) {
 
 	return todos, nil
 }
+
+func (s *service) GetTodoById(todoId string) (responses.GetTodoByIdResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	todo, err := s.todoRepository.GetTodoById(ctx, s.db.Open(), todoId)
+	if err != nil {
+		s.log.Error("error getting todo by id")
+		return todo, err
+	}
+
+	return todo, nil
+}
