@@ -3,7 +3,7 @@ package requests
 import "time"
 
 type TodoRequest struct {
-	TodoId      string    `json:"todo_id" validate:"required"`
+	TodoId      string    `json:"todo_id"`
 	Title       string    `json:"title" validate:"required"`
 	Description string    `json:"description" validate:"required"`
 	Completed   bool      `json:"completed" validate:"required"`

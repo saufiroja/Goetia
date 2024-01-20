@@ -19,7 +19,7 @@ func Start() {
 	db := database.NewPostgres(conf)
 	log := logger.NewLogger()
 
-	module := NewModule(conf, db, log)
+	module := NewModule(db, log)
 
 	//router
 	router := httprouter.New()
@@ -31,14 +31,16 @@ func Start() {
 		Handler: todoRouters,
 	}
 
+	fmt.Println("--------------------")
+	fmt.Println("Server running on port", conf.Http.Port)
+	fmt.Println("--------------------")
+
 	// start server
 	err := serve.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
 		log.Error("server closed")
 	} else if err != nil {
-		log.Error("error starting server")
+		log.Errorf("failed to start server, err: %s", err.Error())
 		os.Exit(1)
-	} else {
-		log.Info("server started")
 	}
 }
