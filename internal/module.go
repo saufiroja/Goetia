@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"github.com/saufiroja/cqrs/internal/delivery/http/controllers"
+	"github.com/saufiroja/cqrs/internal/delivery/controllers"
 	"github.com/saufiroja/cqrs/internal/handlers"
 	"github.com/saufiroja/cqrs/internal/repositories"
 	"github.com/saufiroja/cqrs/internal/services"
