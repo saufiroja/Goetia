@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package todos;
+
+option go_package = "internal/grpc";
+
+import "google/annotations.proto";
+
+service Todos {
+  rpc InsertTodo(TodoRequest) returns (Empty) {
+    option (google.api.http) = {
+      post: "/todos"
+      body: "*"
+    };
+  }
+  rpc GetAllTodos(Empty) returns (TodoResponse) {
+    option (google.api.http) = {
+      get: "/todos"
+    };
+  }
+  rpc GetTodoById(TodoParams) returns (GetTodoResponse) {
+    option (google.api.http) = {
+      get: "/todos/{todo_id}"
+    };
+  }
+  rpc UpdateTodoById(UpdateTodoRequest) returns (Empty) {
+    option (google.api.http) = {
+      put: "/todos/{todo_id}"
+      body: "*"
+    };
+  }
+  rpc UpdateTodoStatusById(UpdateTodoStatusRequest) returns (Empty) {
+    option (google.api.http) = {
+      patch: "/todos/{todo_id}/status"
+      body: "*"
+    };
+  }
+  rpc DeleteTodoById(TodoParams) returns (Empty) {
+    option (google.api.http) = {
+      delete: "/todos/{todo_id}"
+    };
+  }
+}
+
+message TodoParams {
+  string todo_id = 1;
+}
+
+message TodoRequest {
+  string title = 1;
+  bool completed = 2;
+  int64 created_at = 3;
+  int64 updated_at = 4;
+
+  string todo_id = 15;
+  string description = 16;
+}
+
+message UpdateTodoRequest {
+  string title = 1;
+  bool completed = 2;
+  int64 updated_at = 4;
+
+  string todo_id = 15;
+  string description = 16;
+}
+
+message UpdateTodoStatusRequest {
+  bool completed = 2;
+  int64 updated_at = 4;
+
+  string todo_id = 15;
+}
+
+message GetTodoResponse {
+  string title = 1;
+  bool completed = 2;
+  int64 created_at = 3;
+  int64 updated_at = 4;
+
+  string todo_id = 15;
+}
+
+message TodoResponse {
+  repeated GetTodoResponse todos = 1;
+}
+message Empty {}
