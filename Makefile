@@ -32,3 +32,16 @@ all-test:
 docker-down:
 	@echo "Stopping docker..."
 	@docker-compose -f docker-compose-dev.yaml down -v
+
+.PHONY generate proto:
+protoc:
+	@go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.18.0
+	@go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31.0
+	@go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
+	@echo "Generating protobuf files..."
+	@protoc -I ./proto --go_out=./ \
+			--go-grpc_out=require_unimplemented_servers=false:./ \
+			--grpc-gateway_out . --grpc-gateway_opt logtostderr=true \
+			--grpc-gateway_opt generate_unbound_methods=true \
+			./proto/todos/*.proto ./proto/google/*.proto
+	@echo "Done"
