@@ -1,36 +1,32 @@
 package query
 
 import (
+	"context"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
+	"github.com/saufiroja/cqrs/internal/grpc"
 	"github.com/saufiroja/cqrs/internal/mappers"
 	"github.com/saufiroja/cqrs/internal/services"
 	"net/http"
 )
 
-type IGetTodoByIdQuery interface {
-	Handle(w http.ResponseWriter, r *http.Request, params httprouter.Params) error
-}
-
 type GetTodoByIdQuery struct {
 	todoService services.ITodoService
 }
 
-func NewGetTodoByIdQuery(todoService services.ITodoService) IGetTodoByIdQuery {
+func NewGetTodoByIdQuery(todoService services.ITodoService) *GetTodoByIdQuery {
 	return &GetTodoByIdQuery{
 		todoService: todoService,
 	}
 }
 
-func (t *GetTodoByIdQuery) Handle(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
-	todoId := params.ByName("todoId")
-
-	todo, err := t.todoService.GetTodoById(todoId)
+func (t *GetTodoByIdQuery) Handle(ctx context.Context, params *grpc.TodoParams) (*grpc.GetTodoResponse, error) {
+	todo, err := t.todoService.GetTodoById(ctx, params.TodoId)
 	if err != nil {
-		errMsg := fmt.Sprintf("todo not found")
-		return mappers.NewResponseMapper(w, http.StatusNotFound, errMsg, nil)
+		errMsg := fmt.Sprintf("todos not found")
+		return nil, mappers.NewResponseMapper(http.StatusNotFound, errMsg, nil)
 	}
 
-	result := mappers.NewResponseMapper(w, http.StatusOK, "success get todo by id", todo)
-	return result
+	data := mappers.NewGetTodoByIdResponse(todo)
+
+	return data, nil
 }

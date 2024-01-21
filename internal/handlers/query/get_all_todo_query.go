@@ -1,33 +1,32 @@
 package query
 
 import (
+	"context"
 	"fmt"
+	"github.com/saufiroja/cqrs/internal/grpc"
 	"github.com/saufiroja/cqrs/internal/mappers"
 	"github.com/saufiroja/cqrs/internal/services"
 	"net/http"
 )
 
-type IGetAllTodoQuery interface {
-	Handle(w http.ResponseWriter, r *http.Request) error
-}
-
 type GetAllTodoQuery struct {
 	todoService services.ITodoService
 }
 
-func NewGetAllTodoQuery(todoService services.ITodoService) IGetAllTodoQuery {
+func NewGetAllTodoQuery(todoService services.ITodoService) *GetAllTodoQuery {
 	return &GetAllTodoQuery{
 		todoService: todoService,
 	}
 }
 
-func (t *GetAllTodoQuery) Handle(w http.ResponseWriter, r *http.Request) error {
-	todos, err := t.todoService.GetAllTodo()
+func (t *GetAllTodoQuery) Handle(ctx context.Context) (*grpc.TodoResponse, error) {
+	todos, err := t.todoService.GetAllTodo(ctx)
 	if err != nil {
-		errMsg := fmt.Sprintf("failed to get all todo, err: %s", err.Error())
-		return mappers.NewResponseMapper(w, http.StatusOK, errMsg, nil)
+		errMsg := fmt.Sprintf("failed to get all todos, err: %s", err.Error())
+		return nil, mappers.NewResponseMapper(http.StatusOK, errMsg, nil)
 	}
 
-	result := mappers.NewResponseMapper(w, http.StatusOK, "success get all todo", todos)
-	return result
+	data := mappers.NewGetAllTodoResponse(todos)
+
+	return data, nil
 }
