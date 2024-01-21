@@ -31,10 +31,7 @@ var appConfig *AppConfig
 
 func NewAppConfig() *AppConfig {
 	// add config file path in .env
-	err := godotenv.Load("../.env")
-	if err != nil {
-		panic("error loading .env file")
-	}
+	_ = godotenv.Load("../.env")
 
 	if appConfig == nil {
 		appConfig = &AppConfig{}
