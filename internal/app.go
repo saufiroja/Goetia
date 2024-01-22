@@ -8,6 +8,7 @@ import (
 	"github.com/saufiroja/cqrs/internal/app"
 	"github.com/saufiroja/cqrs/pkg/database"
 	"github.com/saufiroja/cqrs/pkg/logger"
+	"github.com/saufiroja/cqrs/pkg/redis"
 	"net"
 	"os"
 	"os/signal"
@@ -18,11 +19,14 @@ func Start() {
 	colors := color.New(color.FgCyan).Add(color.Bold)
 	conf := config.NewAppConfig()
 
+	// redis
+	redisCli := redis.NewRedis(conf.Redis.Host, conf.Redis.Port)
+
 	// database
 	db := database.NewPostgres(conf)
 	log := logger.NewLogger()
 
-	module := NewModule(db, log)
+	module := NewModule(db, log, redisCli)
 
 	grpcListen, err := net.Listen("tcp", fmt.Sprintf(":%s", conf.Grpc.Port))
 	if err != nil {

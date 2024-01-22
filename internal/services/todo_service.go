@@ -2,12 +2,17 @@ package services
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/oklog/ulid/v2"
+	"github.com/redis/go-redis/v9"
 	"github.com/saufiroja/cqrs/internal/contracts/requests"
 	"github.com/saufiroja/cqrs/internal/contracts/responses"
 	"github.com/saufiroja/cqrs/internal/grpc"
 	"github.com/saufiroja/cqrs/internal/repositories"
 	"github.com/saufiroja/cqrs/pkg/database"
+	redisCli "github.com/saufiroja/cqrs/pkg/redis"
 	"github.com/sirupsen/logrus"
 	"time"
 )
@@ -16,13 +21,15 @@ type service struct {
 	db             *database.Postgres
 	log            *logrus.Logger
 	todoRepository repositories.ITodoRepository
+	redisCli       *redisCli.Redis
 }
 
-func NewService(db *database.Postgres, log *logrus.Logger, todoRepository repositories.ITodoRepository) ITodoService {
+func NewService(db *database.Postgres, log *logrus.Logger, todoRepository repositories.ITodoRepository, redisCli *redisCli.Redis) ITodoService {
 	return &service{
 		db:             db,
 		log:            log,
 		todoRepository: todoRepository,
+		redisCli:       redisCli,
 	}
 }
 
@@ -51,13 +58,47 @@ func (s *service) InsertTodo(ctx context.Context, request *grpc.TodoRequest) err
 
 	s.db.CommitTransaction(tx)
 
+	// delete data from redis
+	err = s.redisCli.Del(redisCli.TodosKey)
+	if err != nil {
+		s.log.Error("error deleting todos")
+		return err
+	}
+
 	return nil
 }
 
 func (s *service) GetAllTodo(ctx context.Context) ([]responses.GetAllTodoResponse, error) {
-	todos, err := s.todoRepository.GetAllTodos(ctx, s.db.Open())
+	// get data from redis
+	data, err := s.redisCli.Get(redisCli.TodosKey)
+	if errors.Is(err, redis.Nil) {
+		todos, err := s.todoRepository.GetAllTodos(ctx, s.db.Open())
+		if err != nil {
+			s.log.Error("error getting all todos")
+			return nil, err
+		}
+
+		// marshal todos
+		jsonData, err := json.Marshal(todos)
+		if err != nil {
+			s.log.Error("error marshal todos")
+			return nil, err
+		}
+
+		// set data to redis
+		err = s.redisCli.Set(redisCli.TodosKey, jsonData, 5*time.Minute)
+		if err != nil {
+			s.log.Error(fmt.Sprintf("error setting todos to redis: %v", err))
+			return nil, err
+		}
+
+		return todos, nil
+	}
+
+	var todos []responses.GetAllTodoResponse
+	err = json.Unmarshal([]byte(data), &todos)
 	if err != nil {
-		s.log.Error("error getting all todos")
+		s.log.Error("error unmarshal todos")
 		return nil, err
 	}
 
@@ -65,9 +106,35 @@ func (s *service) GetAllTodo(ctx context.Context) ([]responses.GetAllTodoRespons
 }
 
 func (s *service) GetTodoById(ctx context.Context, todoId string) (responses.GetTodoByIdResponse, error) {
-	todo, err := s.todoRepository.GetTodoById(ctx, s.db.Open(), todoId)
+	data, err := s.redisCli.Get(redisCli.TodoByIdKey)
+	if errors.Is(err, redis.Nil) {
+		todo, err := s.todoRepository.GetTodoById(ctx, s.db.Open(), todoId)
+		if err != nil {
+			s.log.Error("error getting todos by id")
+			return todo, err
+		}
+
+		// marshal todos
+		jsonData, err := json.Marshal(todo)
+		if err != nil {
+			s.log.Error("error marshal todos")
+			return todo, err
+		}
+
+		// set data to redis
+		err = s.redisCli.Set(redisCli.TodoByIdKey, jsonData, 5*time.Minute)
+		if err != nil {
+			s.log.Error(fmt.Sprintf("error setting todos to redis: %v", err))
+			return todo, err
+		}
+
+		return todo, nil
+	}
+
+	var todo responses.GetTodoByIdResponse
+	err = json.Unmarshal([]byte(data), &todo)
 	if err != nil {
-		s.log.Error("error getting todos by id")
+		s.log.Error("error unmarshal todos")
 		return todo, err
 	}
 
@@ -75,9 +142,6 @@ func (s *service) GetTodoById(ctx context.Context, todoId string) (responses.Get
 }
 
 func (s *service) UpdateTodoById(ctx context.Context, request *grpc.UpdateTodoRequest) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
 	input := &requests.UpdateTodoRequest{
 		TodoId:      request.TodoId,
 		Title:       request.Title,
@@ -106,6 +170,19 @@ func (s *service) UpdateTodoById(ctx context.Context, request *grpc.UpdateTodoRe
 	}
 
 	s.db.CommitTransaction(tx)
+
+	// delete data from redis
+	err = s.redisCli.Del(redisCli.TodosKey)
+	if err != nil {
+		s.log.Error("error deleting todos")
+		return err
+	}
+
+	err = s.redisCli.Del(redisCli.TodoByIdKey)
+	if err != nil {
+		s.log.Error("error deleting todos")
+		return err
+	}
 
 	return nil
 }
@@ -144,6 +221,13 @@ func (s *service) UpdateTodoStatusById(ctx context.Context, request *grpc.Update
 
 	s.db.CommitTransaction(tx)
 
+	// delete data from redis
+	err = s.redisCli.Del(redisCli.TodosKey)
+	if err != nil {
+		s.log.Error("error deleting todos")
+		return err
+	}
+
 	return nil
 }
 
@@ -168,6 +252,13 @@ func (s *service) DeleteTodoById(ctx context.Context, todoId string) error {
 	}
 
 	s.db.CommitTransaction(tx)
+
+	// delete data from redis
+	err = s.redisCli.Del(redisCli.TodosKey)
+	if err != nil {
+		s.log.Error("error deleting todos")
+		return err
+	}
 
 	return nil
 }
