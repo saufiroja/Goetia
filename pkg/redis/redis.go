@@ -53,6 +53,9 @@ func (r *Redis) Del(key string) error {
 	return r.client.Del(ctx, key).Err()
 }
 
-func (r *Redis) Close() error {
-	return r.client.Close()
+func (r *Redis) Close(ctx context.Context) {
+	err := r.client.Close()
+	if err != nil {
+		panic(err)
+	}
 }

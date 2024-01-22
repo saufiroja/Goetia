@@ -9,6 +9,8 @@ import (
 	"github.com/saufiroja/cqrs/pkg/database"
 	"github.com/saufiroja/cqrs/pkg/logger"
 	"github.com/saufiroja/cqrs/pkg/redis"
+	"github.com/saufiroja/cqrs/pkg/tracing"
+	"go.opentelemetry.io/otel"
 	"net"
 	"os"
 	"os/signal"
@@ -19,6 +21,14 @@ func Start() {
 	colors := color.New(color.FgCyan).Add(color.Bold)
 	conf := config.NewAppConfig()
 
+	// tracing
+	trace, err := tracing.NewTracing("http://localhost:14268/api/traces")
+	if err != nil {
+		panic(err)
+	}
+
+	otel.SetTracerProvider(trace.TracerProvider)
+
 	// redis
 	redisCli := redis.NewRedis(conf.Redis.Host, conf.Redis.Port)
 
@@ -26,7 +36,7 @@ func Start() {
 	db := database.NewPostgres(conf)
 	log := logger.NewLogger()
 
-	module := NewModule(db, log, redisCli)
+	module := NewModule(db, log, redisCli, trace)
 
 	grpcListen, err := net.Listen("tcp", fmt.Sprintf(":%s", conf.Grpc.Port))
 	if err != nil {
@@ -36,11 +46,14 @@ func Start() {
 	grpcApp := app.NewGrpc(conf.Grpc.Port, grpcListen, module)
 	restApp := app.NewRest(conf.Http.Port, grpcListen)
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	// start grpc server
-	go grpcApp.Start(context.Background())
+	go grpcApp.Start(ctx)
 
 	// start rest server
-	go restApp.Start(context.Background())
+	go restApp.Start(ctx)
 
 	fmt.Printf("%s\n", colors.Sprint("----------------------------------------"))
 	fmt.Printf("GRPC server running on port %s\n", colors.Sprint(conf.Grpc.Port))
@@ -58,6 +71,9 @@ func Start() {
 
 	grpcApp.Shutdown(context.Background())
 	restApp.Shutdown(context.Background())
+	trace.Shutdown(context.Background())
+	redisCli.Close(context.Background())
+	db.Close(context.Background())
 
 	log.Info("server gracefully stopped")
 	log.Info("process clean up...")

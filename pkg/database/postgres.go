@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
@@ -60,4 +61,11 @@ func (p *Postgres) CommitTransaction(tx *sql.Tx) {
 
 func (p *Postgres) RollbackTransaction(tx *sql.Tx) {
 	_ = tx.Rollback()
+}
+
+func (p *Postgres) Close(ctx context.Context) {
+	err := p.db.Close()
+	if err != nil {
+		panic(err)
+	}
 }
