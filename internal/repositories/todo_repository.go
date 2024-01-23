@@ -19,10 +19,10 @@ func NewRepository(tracing *tracing.Tracing) ITodoRepository {
 }
 
 func (r *repository) InsertTodo(ctx context.Context, tx *sql.Tx, todo *requests.TodoRequest) error {
-	ctxs, span := r.tracing.StartGlobalTracerSpan(ctx, "Repository.InsertTodo")
-	defer span.End()
+	tracer, ctx := r.tracing.StartSpan(ctx, "Repository.InsertTodo")
+	defer tracer.Finish()
 	query := `INSERT INTO todos (todo_id, title, description, completed) VALUES ($1, $2, $3, $4)`
-	_, err := tx.ExecContext(ctxs, query, todo.TodoId, todo.Title, todo.Description, todo.Completed)
+	_, err := tx.ExecContext(ctx, query, todo.TodoId, todo.Title, todo.Description, todo.Completed)
 	if err != nil {
 		return err
 	}
@@ -31,11 +31,11 @@ func (r *repository) InsertTodo(ctx context.Context, tx *sql.Tx, todo *requests.
 }
 
 func (r *repository) GetAllTodos(ctx context.Context, db *sql.DB) ([]responses.GetAllTodoResponse, error) {
-	ctxs, span := r.tracing.StartGlobalTracerSpan(ctx, "Repository.GetAllTodos")
-	defer span.End()
+	tracer, ctx := r.tracing.StartSpan(ctx, "Repository.GetAllTodos")
+	defer tracer.Finish()
 
 	query := `SELECT todo_id, title, completed, created_at, updated_at FROM todos`
-	rows, err := db.QueryContext(ctxs, query)
+	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -55,11 +55,11 @@ func (r *repository) GetAllTodos(ctx context.Context, db *sql.DB) ([]responses.G
 }
 
 func (r *repository) GetTodoById(ctx context.Context, db *sql.DB, todoId string) (responses.GetTodoByIdResponse, error) {
-	ctxs, span := r.tracing.StartGlobalTracerSpan(ctx, "Repository.GetTodoById")
-	defer span.End()
+	tracer, ctx := r.tracing.StartSpan(ctx, "Repository.GetTodoById")
+	defer tracer.Finish()
 
 	query := `SELECT todo_id, title, description, completed, created_at, updated_at FROM todos WHERE todo_id = $1`
-	row := db.QueryRowContext(ctxs, query, todoId)
+	row := db.QueryRowContext(ctx, query, todoId)
 
 	var todo responses.GetTodoByIdResponse
 	err := row.Scan(&todo.TodoId, &todo.Title, &todo.Description, &todo.Completed, &todo.CreatedAt, &todo.UpdatedAt)
@@ -71,11 +71,11 @@ func (r *repository) GetTodoById(ctx context.Context, db *sql.DB, todoId string)
 }
 
 func (r *repository) UpdateTodoById(ctx context.Context, tx *sql.Tx, todo *requests.UpdateTodoRequest) error {
-	ctxs, span := r.tracing.StartGlobalTracerSpan(ctx, "Repository.UpdateTodoById")
-	defer span.End()
+	tracer, ctx := r.tracing.StartSpan(ctx, "Repository.UpdateTodoById")
+	defer tracer.Finish()
 
 	query := `UPDATE todos SET title = $1, description = $2, completed = $3, updated_at = $4 WHERE todo_id = $5`
-	_, err := tx.ExecContext(ctxs, query, todo.Title, todo.Description, todo.Completed, todo.UpdatedAt, todo.TodoId)
+	_, err := tx.ExecContext(ctx, query, todo.Title, todo.Description, todo.Completed, todo.UpdatedAt, todo.TodoId)
 	if err != nil {
 		return err
 	}
@@ -84,11 +84,11 @@ func (r *repository) UpdateTodoById(ctx context.Context, tx *sql.Tx, todo *reque
 }
 
 func (r *repository) UpdateTodoStatusById(ctx context.Context, tx *sql.Tx, todo *requests.UpdateTodoStatusRequest) error {
-	ctxs, span := r.tracing.StartGlobalTracerSpan(ctx, "Repository.UpdateTodoStatusById")
-	defer span.End()
+	tracer, ctx := r.tracing.StartSpan(ctx, "Repository.UpdateTodoStatusById")
+	defer tracer.Finish()
 
 	query := `UPDATE todos SET completed = $1, updated_at = $2 WHERE todo_id = $3`
-	_, err := tx.ExecContext(ctxs, query, todo.Completed, todo.UpdatedAt, todo.TodoId)
+	_, err := tx.ExecContext(ctx, query, todo.Completed, todo.UpdatedAt, todo.TodoId)
 	if err != nil {
 		return err
 	}
@@ -97,11 +97,11 @@ func (r *repository) UpdateTodoStatusById(ctx context.Context, tx *sql.Tx, todo 
 }
 
 func (r *repository) DeleteTodoById(ctx context.Context, tx *sql.Tx, todoId string) error {
-	ctxs, span := r.tracing.StartGlobalTracerSpan(ctx, "Repository.DeleteTodoById")
-	defer span.End()
+	tracer, ctx := r.tracing.StartSpan(ctx, "Repository.DeleteTodoById")
+	defer tracer.Finish()
 
 	query := `DELETE FROM todos WHERE todo_id = $1`
-	_, err := tx.ExecContext(ctxs, query, todoId)
+	_, err := tx.ExecContext(ctx, query, todoId)
 	if err != nil {
 		return err
 	}

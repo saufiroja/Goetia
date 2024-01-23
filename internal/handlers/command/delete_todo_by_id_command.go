@@ -23,10 +23,10 @@ func NewDeleteTodoByIdCommand(todoService services.ITodoService, tracing *tracin
 }
 
 func (t *DeleteTodoByIdCommand) Handle(ctx context.Context, params *grpc.TodoParams) (*grpc.Empty, error) {
-	ctxs, span := t.tracing.StartGlobalTracerSpan(ctx, "DeleteTodoByIdCommand.Handle")
-	defer span.End()
+	tracer, ctx := t.tracing.StartSpan(ctx, "DeleteTodoByIdCommand.Handle")
+	defer tracer.Finish()
 
-	err := t.todoService.DeleteTodoById(ctxs, params.TodoId)
+	err := t.todoService.DeleteTodoById(ctx, params.TodoId)
 	if err != nil {
 		errMsg := fmt.Sprintf("failed to delete todos, err: %s", err.Error())
 		return nil, mappers.NewResponseMapper(http.StatusInternalServerError, errMsg, nil)

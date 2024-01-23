@@ -37,8 +37,8 @@ func NewService(db *database.Postgres, log *logrus.Logger, todoRepository reposi
 }
 
 func (s *service) InsertTodo(ctx context.Context, request *grpc.TodoRequest) error {
-	ctxs, span := s.tracing.StartGlobalTracerSpan(ctx, "Service.InsertTodo")
-	defer span.End()
+	tracer, ctx := s.tracing.StartSpan(ctx, "Service.InsertTodo")
+	defer tracer.Finish()
 
 	input := &requests.TodoRequest{
 		TodoId:      ulid.Make().String(),
@@ -55,7 +55,7 @@ func (s *service) InsertTodo(ctx context.Context, request *grpc.TodoRequest) err
 		return err
 	}
 
-	err = s.todoRepository.InsertTodo(ctxs, tx, input)
+	err = s.todoRepository.InsertTodo(ctx, tx, input)
 	if err != nil {
 		s.log.Error("error inserting todos")
 		s.db.RollbackTransaction(tx)
@@ -75,13 +75,13 @@ func (s *service) InsertTodo(ctx context.Context, request *grpc.TodoRequest) err
 }
 
 func (s *service) GetAllTodo(ctx context.Context) ([]responses.GetAllTodoResponse, error) {
-	ctxs, span := s.tracing.StartGlobalTracerSpan(ctx, "Service.GetAllTodo")
-	defer span.End()
+	tracer, ctx := s.tracing.StartSpan(ctx, "Service.GetAllTodo")
+	defer tracer.Finish()
 
 	// get data from redis
 	data, err := s.redisCli.Get(redisCli.TodosKey)
 	if errors.Is(err, redis.Nil) {
-		todos, err := s.todoRepository.GetAllTodos(ctxs, s.db.Open())
+		todos, err := s.todoRepository.GetAllTodos(ctx, s.db.Open())
 		if err != nil {
 			s.log.Error("error getting all todos")
 			return nil, err
@@ -115,12 +115,12 @@ func (s *service) GetAllTodo(ctx context.Context) ([]responses.GetAllTodoRespons
 }
 
 func (s *service) GetTodoById(ctx context.Context, todoId string) (responses.GetTodoByIdResponse, error) {
-	ctxs, span := s.tracing.StartGlobalTracerSpan(ctx, "Service.GetTodoById")
-	defer span.End()
+	tracer, ctx := s.tracing.StartSpan(ctx, "Service.GetTodoById")
+	defer tracer.Finish()
 
 	data, err := s.redisCli.Get(redisCli.TodoByIdKey)
 	if errors.Is(err, redis.Nil) {
-		todo, err := s.todoRepository.GetTodoById(ctxs, s.db.Open(), todoId)
+		todo, err := s.todoRepository.GetTodoById(ctx, s.db.Open(), todoId)
 		if err != nil {
 			s.log.Error("error getting todos by id")
 			return todo, err
@@ -154,8 +154,8 @@ func (s *service) GetTodoById(ctx context.Context, todoId string) (responses.Get
 }
 
 func (s *service) UpdateTodoById(ctx context.Context, request *grpc.UpdateTodoRequest) error {
-	ctxs, span := s.tracing.StartGlobalTracerSpan(ctx, "Service.UpdateTodoById")
-	defer span.End()
+	tracer, ctx := s.tracing.StartSpan(ctx, "Service.UpdateTodoById")
+	defer tracer.Finish()
 
 	input := &requests.UpdateTodoRequest{
 		TodoId:      request.TodoId,
@@ -165,7 +165,7 @@ func (s *service) UpdateTodoById(ctx context.Context, request *grpc.UpdateTodoRe
 		UpdatedAt:   time.Unix(request.UpdatedAt, 0),
 	}
 
-	_, err := s.todoRepository.GetTodoById(ctxs, s.db.Open(), input.TodoId)
+	_, err := s.todoRepository.GetTodoById(ctx, s.db.Open(), input.TodoId)
 	if err != nil {
 		s.log.Error("error getting todos by id")
 		return err
@@ -177,7 +177,7 @@ func (s *service) UpdateTodoById(ctx context.Context, request *grpc.UpdateTodoRe
 		return err
 	}
 
-	err = s.todoRepository.UpdateTodoById(ctxs, tx, input)
+	err = s.todoRepository.UpdateTodoById(ctx, tx, input)
 	if err != nil {
 		s.log.Error("error updating todos by id")
 		s.db.RollbackTransaction(tx)
@@ -203,8 +203,8 @@ func (s *service) UpdateTodoById(ctx context.Context, request *grpc.UpdateTodoRe
 }
 
 func (s *service) UpdateTodoStatusById(ctx context.Context, request *grpc.UpdateTodoStatusRequest) error {
-	ctxs, span := s.tracing.StartGlobalTracerSpan(ctx, "Service.UpdateTodoStatusById")
-	defer span.End()
+	tracer, ctx := s.tracing.StartSpan(ctx, "Service.UpdateTodoStatusById")
+	defer tracer.Finish()
 
 	input := &requests.UpdateTodoStatusRequest{
 		TodoId:    request.TodoId,
@@ -212,7 +212,7 @@ func (s *service) UpdateTodoStatusById(ctx context.Context, request *grpc.Update
 		UpdatedAt: time.Unix(request.UpdatedAt, 0),
 	}
 
-	todo, err := s.todoRepository.GetTodoById(ctxs, s.db.Open(), input.TodoId)
+	todo, err := s.todoRepository.GetTodoById(ctx, s.db.Open(), input.TodoId)
 	if err != nil {
 		s.log.Error("error getting todos by id")
 		return err
@@ -230,7 +230,7 @@ func (s *service) UpdateTodoStatusById(ctx context.Context, request *grpc.Update
 		return err
 	}
 
-	err = s.todoRepository.UpdateTodoStatusById(ctxs, tx, input)
+	err = s.todoRepository.UpdateTodoStatusById(ctx, tx, input)
 	if err != nil {
 		s.log.Error("error updating todos status by id")
 		s.db.RollbackTransaction(tx)
@@ -250,10 +250,10 @@ func (s *service) UpdateTodoStatusById(ctx context.Context, request *grpc.Update
 }
 
 func (s *service) DeleteTodoById(ctx context.Context, todoId string) error {
-	ctxs, span := s.tracing.StartGlobalTracerSpan(ctx, "Service.DeleteTodoById")
-	defer span.End()
+	tracer, ctx := s.tracing.StartSpan(ctx, "Service.DeleteTodoById")
+	defer tracer.Finish()
 
-	_, err := s.todoRepository.GetTodoById(ctxs, s.db.Open(), todoId)
+	_, err := s.todoRepository.GetTodoById(ctx, s.db.Open(), todoId)
 	if err != nil {
 		s.log.Error("error getting todos by id")
 		return err
@@ -265,7 +265,7 @@ func (s *service) DeleteTodoById(ctx context.Context, todoId string) error {
 		return err
 	}
 
-	err = s.todoRepository.DeleteTodoById(ctxs, tx, todoId)
+	err = s.todoRepository.DeleteTodoById(ctx, tx, todoId)
 	if err != nil {
 		s.log.Error("error deleting todos by id")
 		s.db.RollbackTransaction(tx)

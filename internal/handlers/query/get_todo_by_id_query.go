@@ -23,10 +23,10 @@ func NewGetTodoByIdQuery(todoService services.ITodoService, tracing *tracing.Tra
 }
 
 func (t *GetTodoByIdQuery) Handle(ctx context.Context, params *grpc.TodoParams) (*grpc.GetTodoResponse, error) {
-	ctxs, span := t.tracing.StartGlobalTracerSpan(ctx, "GetTodoByIdQuery.Handle")
-	defer span.End()
+	tracer, ctx := t.tracing.StartSpan(ctx, "GetTodoByIdQuery.Handle")
+	defer tracer.Finish()
 
-	todo, err := t.todoService.GetTodoById(ctxs, params.TodoId)
+	todo, err := t.todoService.GetTodoById(ctx, params.TodoId)
 	if err != nil {
 		errMsg := fmt.Sprintf("todos not found")
 		return nil, mappers.NewResponseMapper(http.StatusNotFound, errMsg, nil)

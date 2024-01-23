@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.31.0
 // 	protoc        v3.21.9
-// source: todos/todo.proto
+// datasources: todos/todo.proto
 
 package grpc
 

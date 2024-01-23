@@ -26,8 +26,8 @@ func NewInsertTodoCommand(todoService services.ITodoService, validation *validat
 }
 
 func (t *InsertTodoCommand) Handle(ctx context.Context, request *grpc.TodoRequest) (*grpc.Empty, error) {
-	ctxs, span := t.tracing.StartGlobalTracerSpan(ctx, "InsertTodoCommand.Handle")
-	defer span.End()
+	tracer, ctx := t.tracing.StartSpan(ctx, "InsertTodoCommand.Handle")
+	defer tracer.Finish()
 
 	err := t.validation.Validate(request)
 	if err != nil {
@@ -35,7 +35,7 @@ func (t *InsertTodoCommand) Handle(ctx context.Context, request *grpc.TodoReques
 		return nil, mappers.NewResponseMapper(http.StatusBadRequest, errMsg, nil)
 	}
 
-	err = t.todoService.InsertTodo(ctxs, request)
+	err = t.todoService.InsertTodo(ctx, request)
 	if err != nil {
 		errMsg := fmt.Sprintf("failed to insert todos, err: %s", err.Error())
 		return nil, mappers.NewResponseMapper(http.StatusInternalServerError, errMsg, nil)

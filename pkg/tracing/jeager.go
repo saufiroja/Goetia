@@ -2,46 +2,49 @@ package tracing
 
 import (
 	"context"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/exporters/jaeger"
-	"go.opentelemetry.io/otel/sdk/resource"
-	tracesdk "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
-	"go.opentelemetry.io/otel/trace"
+	"fmt"
+	"github.com/opentracing/opentracing-go"
+	"github.com/saufiroja/cqrs/config"
+	"github.com/uber/jaeger-client-go"
+	jeagerCfg "github.com/uber/jaeger-client-go/config"
+	"io"
 	"log"
 )
 
 type Tracing struct {
-	TracerProvider *tracesdk.TracerProvider
+	closer io.Closer
 }
 
-func NewTracing(url string) (*Tracing, error) {
-	exp, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(url)))
-	if err != nil {
-		return nil, err
+func NewTracing(conf *config.AppConfig) *Tracing {
+	cfg := jeagerCfg.Configuration{
+		ServiceName: "todo-service",
+		Sampler: &jeagerCfg.SamplerConfig{
+			Type:  "const",
+			Param: 1,
+		},
+		Reporter: &jeagerCfg.ReporterConfig{
+			LogSpans:          true,
+			CollectorEndpoint: fmt.Sprintf("http://%s:%s/api/traces", conf.Jaeger.Host, conf.Jaeger.Port),
+		},
 	}
-	tp := tracesdk.NewTracerProvider(
-		// Always be sure to batch in production.
-		tracesdk.WithBatcher(exp),
-		// Record information about this application in a Resource.
-		tracesdk.WithResource(resource.NewWithAttributes(
-			semconv.SchemaURL,
-			semconv.ServiceNameKey.String("todos"),
-			//attribute.String("environment", environment),
-			attribute.Int64("ID", 42),
-		)),
-	)
-	log.Println("Tracing initialized")
-	return &Tracing{TracerProvider: tp}, nil
-}
 
-func (t *Tracing) Shutdown(ctx context.Context) {
-	err := t.TracerProvider.Shutdown(ctx)
+	tracer, closer, err := cfg.NewTracer(
+		jeagerCfg.Logger(jaeger.StdLogger),
+		jeagerCfg.ZipkinSharedRPCSpan(true),
+	)
 	if err != nil {
 		panic(err)
 	}
+
+	opentracing.SetGlobalTracer(tracer)
+
+	log.Println("Jaeger Tracing is enabled")
+
+	return &Tracing{
+		closer: closer,
+	}
 }
 
-func (t *Tracing) StartGlobalTracerSpan(ctx context.Context, name string) (context.Context, trace.Span) {
-	return t.TracerProvider.Tracer("todos").Start(ctx, name)
+func (t *Tracing) StartSpan(ctx context.Context, operationName string) (opentracing.Span, context.Context) {
+	return opentracing.StartSpanFromContext(ctx, operationName)
 }

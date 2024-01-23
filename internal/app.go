@@ -10,7 +10,6 @@ import (
 	"github.com/saufiroja/cqrs/pkg/logger"
 	"github.com/saufiroja/cqrs/pkg/redis"
 	"github.com/saufiroja/cqrs/pkg/tracing"
-	"go.opentelemetry.io/otel"
 	"net"
 	"os"
 	"os/signal"
@@ -22,15 +21,10 @@ func Start() {
 	conf := config.NewAppConfig()
 
 	// tracing
-	trace, err := tracing.NewTracing("http://localhost:14268/api/traces")
-	if err != nil {
-		panic(err)
-	}
-
-	otel.SetTracerProvider(trace.TracerProvider)
+	trace := tracing.NewTracing(conf)
 
 	// redis
-	redisCli := redis.NewRedis(conf.Redis.Host, conf.Redis.Port)
+	redisCli := redis.NewRedis(conf)
 
 	// database
 	db := database.NewPostgres(conf)
@@ -71,7 +65,6 @@ func Start() {
 
 	grpcApp.Shutdown(context.Background())
 	restApp.Shutdown(context.Background())
-	trace.Shutdown(context.Background())
 	redisCli.Close(context.Background())
 	db.Close(context.Background())
 

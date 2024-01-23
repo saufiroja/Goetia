@@ -23,10 +23,10 @@ func NewGetAllTodoQuery(todoService services.ITodoService, tracing *tracing.Trac
 }
 
 func (t *GetAllTodoQuery) Handle(ctx context.Context) (*grpc.TodoResponse, error) {
-	ctxs, span := t.tracing.StartGlobalTracerSpan(ctx, "GetAllTodoQuery.Handle")
-	defer span.End()
-	
-	todos, err := t.todoService.GetAllTodo(ctxs)
+	tracer, ctx := t.tracing.StartSpan(ctx, "GetAllTodoQuery.Handle")
+	defer tracer.Finish()
+
+	todos, err := t.todoService.GetAllTodo(ctx)
 	if err != nil {
 		errMsg := fmt.Sprintf("failed to get all todos, err: %s", err.Error())
 		return nil, mappers.NewResponseMapper(http.StatusOK, errMsg, nil)

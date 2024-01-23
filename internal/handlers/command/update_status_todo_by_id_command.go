@@ -23,10 +23,10 @@ func NewUpdateStatusTodoByIdCommand(todoService services.ITodoService, tracing *
 }
 
 func (t *UpdateStatusTodoByIdCommand) Handle(ctx context.Context, request *grpc.UpdateTodoStatusRequest) (*grpc.Empty, error) {
-	ctxs, span := t.tracing.StartGlobalTracerSpan(ctx, "UpdateStatusTodoByIdCommand.Handle")
-	defer span.End()
+	tracer, ctx := t.tracing.StartSpan(ctx, "UpdateStatusTodoByIdCommand.Handle")
+	defer tracer.Finish()
 
-	err := t.todoService.UpdateTodoStatusById(ctxs, request)
+	err := t.todoService.UpdateTodoStatusById(ctx, request)
 	if err != nil {
 		errMsg := fmt.Sprintf("failed to update todos, err: %s", err.Error())
 		return nil, mappers.NewResponseMapper(http.StatusInternalServerError, errMsg, nil)

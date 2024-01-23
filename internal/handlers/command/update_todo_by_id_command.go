@@ -26,8 +26,8 @@ func NewUpdateTodoCommand(todoService services.ITodoService, validation *validat
 }
 
 func (t *UpdateTodoCommand) Handle(ctx context.Context, request *grpc.UpdateTodoRequest) (*grpc.Empty, error) {
-	ctxs, span := t.tracing.StartGlobalTracerSpan(ctx, "UpdateTodoCommand.Handle")
-	defer span.End()
+	tracer, ctx := t.tracing.StartSpan(ctx, "UpdateTodoCommand.Handle")
+	defer tracer.Finish()
 
 	err := t.validation.Validate(request)
 	if err != nil {
@@ -35,7 +35,7 @@ func (t *UpdateTodoCommand) Handle(ctx context.Context, request *grpc.UpdateTodo
 		return nil, mappers.NewResponseMapper(http.StatusBadRequest, errMsg, nil)
 	}
 
-	err = t.todoService.UpdateTodoById(ctxs, request)
+	err = t.todoService.UpdateTodoById(ctx, request)
 	if err != nil {
 		errMsg := fmt.Sprintf("failed to update todos, err: %s", err.Error())
 		return nil, mappers.NewResponseMapper(http.StatusInternalServerError, errMsg, nil)

@@ -16,7 +16,7 @@
 // versions:
 // 	protoc-gen-go v1.31.0
 // 	protoc        v3.21.9
-// source: google/http.proto
+// datasources: google/http.proto
 
 package grpc
 

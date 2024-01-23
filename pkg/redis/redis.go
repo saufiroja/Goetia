@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"
+	"github.com/saufiroja/cqrs/config"
 	"log"
 	"time"
 )
@@ -12,9 +13,9 @@ type Redis struct {
 	client *redis.Client
 }
 
-func NewRedis(host, port string) *Redis {
+func NewRedis(conf *config.AppConfig) *Redis {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", host, port),
+		Addr:     fmt.Sprintf("%s:%s", conf.Redis.Host, conf.Redis.Port),
 		Password: "",
 		DB:       0,
 	})

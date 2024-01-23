@@ -25,6 +25,10 @@ type AppConfig struct {
 		Port string
 		Pass string
 	}
+	Jaeger struct {
+		Host string
+		Port string
+	}
 }
 
 var appConfig *AppConfig
@@ -41,6 +45,7 @@ func NewAppConfig() *AppConfig {
 		initHttp(appConfig)
 		initPostgres(appConfig)
 		initRedis(appConfig)
+		initJaeger(appConfig)
 	}
 
 	return appConfig
