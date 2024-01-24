@@ -7,12 +7,10 @@ import (
 	"github.com/saufiroja/cqrs/config"
 	"github.com/uber/jaeger-client-go"
 	jeagerCfg "github.com/uber/jaeger-client-go/config"
-	"io"
 	"log"
 )
 
 type Tracing struct {
-	closer io.Closer
 }
 
 func NewTracing(conf *config.AppConfig) *Tracing {
@@ -28,7 +26,7 @@ func NewTracing(conf *config.AppConfig) *Tracing {
 		},
 	}
 
-	tracer, closer, err := cfg.NewTracer(
+	tracer, _, err := cfg.NewTracer(
 		jeagerCfg.Logger(jaeger.StdLogger),
 		jeagerCfg.ZipkinSharedRPCSpan(true),
 	)
@@ -40,9 +38,7 @@ func NewTracing(conf *config.AppConfig) *Tracing {
 
 	log.Println("Jaeger Tracing is enabled")
 
-	return &Tracing{
-		closer: closer,
-	}
+	return &Tracing{}
 }
 
 func (t *Tracing) StartSpan(ctx context.Context, operationName string) (opentracing.Span, context.Context) {
