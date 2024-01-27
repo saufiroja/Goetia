@@ -1,6 +1,7 @@
 version: '3.9'
 services:
-  cqrs:
+  goetia:
+    image: goetia:1.0
     build:
       context: .
       dockerfile: Dockerfile

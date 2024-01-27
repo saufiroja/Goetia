@@ -41,6 +41,6 @@ func NewTracing(conf *config.AppConfig) *Tracing {
 	return &Tracing{}
 }
 
-func (t *Tracing) StartSpan(ctx context.Context, operationName string) (opentracing.Span, context.Context) {
-	return opentracing.StartSpanFromContext(ctx, operationName)
+func (t *Tracing) StartSpan(ctx context.Context, operationName string, opts ...opentracing.StartSpanOption) (opentracing.Span, context.Context) {
+	return opentracing.StartSpanFromContext(ctx, operationName, opts...)
 }
