@@ -1,4 +1,4 @@
-package internal
+package app
 
 import (
 	"github.com/saufiroja/cqrs/internal/delivery/controllers"

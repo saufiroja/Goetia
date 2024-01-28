@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/saufiroja/cqrs/internal/delivery/controllers"
 	internalGrpc "github.com/saufiroja/cqrs/internal/grpc"
 	"google.golang.org/grpc"
@@ -10,33 +11,30 @@ import (
 )
 
 type Grpc struct {
-	port         string
-	listener     net.Listener
-	dependencies controllers.ITodoController
-	server       *grpc.Server
+	server *grpc.Server
 }
 
-func NewGrpc(port string, listener net.Listener, dependencies controllers.ITodoController) App {
+func NewGrpc(dependencies controllers.ITodoController) *Grpc {
+	grpcServer := grpc.NewServer(
+		grpc.StreamInterceptor(grpc_prometheus.StreamServerInterceptor),
+		grpc.UnaryInterceptor(grpc_prometheus.UnaryServerInterceptor),
+	)
+	reflection.Register(grpcServer)
+
+	internalGrpc.RegisterTodosServer(grpcServer, dependencies)
+
 	return &Grpc{
-		port:         port,
-		listener:     listener,
-		dependencies: dependencies,
+		server: grpcServer,
 	}
 }
 
-func (g *Grpc) Start(ctx context.Context) {
-	var opt []grpc.ServerOption
-	g.server = grpc.NewServer(opt...)
-	reflection.Register(g.server)
-
-	internalGrpc.RegisterTodosServer(g.server, g.dependencies)
-
-	err := g.server.Serve(g.listener)
+func (g *Grpc) GrpcStart(listener net.Listener) {
+	err := g.server.Serve(listener)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (g *Grpc) Shutdown(ctx context.Context) {
+func (g *Grpc) GrpcShutdown(ctx context.Context) {
 	g.server.GracefulStop()
 }

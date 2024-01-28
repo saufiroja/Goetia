@@ -4,7 +4,8 @@ import "github.com/joho/godotenv"
 
 type AppConfig struct {
 	App struct {
-		Env string
+		Env         string
+		ServiceName string
 	}
 	Grpc struct {
 		Port string

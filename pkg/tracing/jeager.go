@@ -15,7 +15,7 @@ type Tracing struct {
 
 func NewTracing(conf *config.AppConfig) *Tracing {
 	cfg := jeagerCfg.Configuration{
-		ServiceName: "todo-service",
+		ServiceName: conf.App.ServiceName,
 		Sampler: &jeagerCfg.SamplerConfig{
 			Type:  "const",
 			Param: 1,

@@ -1,10 +1,11 @@
 package main
 
 import (
-	_ "github.com/lib/pq"
-	"github.com/saufiroja/cqrs/internal"
+	"context"
+	"github.com/saufiroja/cqrs/internal/app"
 )
 
 func main() {
-	internal.Start()
+	start := app.NewAppFactor()
+	start.Start(context.Background())
 }

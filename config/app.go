@@ -10,7 +10,7 @@ import (
 
 func initApp(conf *AppConfig) {
 	env := os.Getenv("GO_ENV")
-
+	serviceName := os.Getenv("SERVICE_NAME")
 	switch cases.Lower(language.English).String(env) {
 	case "development":
 		conf.App.Env = "development"
@@ -30,4 +30,5 @@ func initApp(conf *AppConfig) {
 	}
 
 	conf.App.Env = env
+	conf.App.ServiceName = serviceName
 }

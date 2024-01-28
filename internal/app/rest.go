@@ -14,22 +14,13 @@ import (
 )
 
 type Rest struct {
-	port     string
-	listener net.Listener
-	server   *http.Server
+	*http.Server
 }
 
-func NewRest(port string, listener net.Listener) App {
-	return &Rest{
-		port:     port,
-		listener: listener,
-	}
-}
-
-func (r *Rest) Start(ctx context.Context) {
+func NewRest(port string, listener net.Listener, ctx context.Context) *Rest {
 	conn, err := grpc.DialContext(
 		ctx,
-		r.listener.Addr().String(),
+		listener.Addr().String(),
 		grpc.WithBlock(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
@@ -44,12 +35,18 @@ func (r *Rest) Start(ctx context.Context) {
 		panic(err)
 	}
 
-	r.server = &http.Server{
-		Addr:    fmt.Sprintf(":%s", r.port),
+	httpServer := &http.Server{
+		Addr:    fmt.Sprintf(":%s", port),
 		Handler: mux,
 	}
 
-	err = r.server.ListenAndServe()
+	return &Rest{
+		httpServer,
+	}
+}
+
+func (r *Rest) HttpStart() {
+	err := r.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
 		return
 	} else if err != nil {
@@ -58,8 +55,8 @@ func (r *Rest) Start(ctx context.Context) {
 	}
 }
 
-func (r *Rest) Shutdown(ctx context.Context) {
-	err := r.server.Shutdown(ctx)
+func (r *Rest) HttpShutdown(ctx context.Context) {
+	err := r.Shutdown(ctx)
 	if err != nil {
 		return
 	}
