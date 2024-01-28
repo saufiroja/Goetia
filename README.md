@@ -1,9 +1,11 @@
-# GO CQRS Microservice Boilerplate
+# Goetia
+Goetia is a repository for Learning the Principles of using gRPC and Rest HTTP
 
-This is a boilerplate for a microservice written in Go. It uses CQRS and Event Sourcing as architectural patterns.
+The principle of using gRPC and Rest HTTP in 1 application is to use a grpc gateway. 
+Grpc gateway is a proxy that can be used to access the gRPC service using the Rest HTTP protocol. 
+This repository can be used as a reference to learn the principles of using gRPC and Rest HTTP in 1 application.
 
 ## Getting Started
-
 ### Prerequisites
 
 - [Go](https://golang.org/doc/install)
@@ -17,53 +19,63 @@ This is a boilerplate for a microservice written in Go. It uses CQRS and Event S
 1. Clone the repository
 
 ```bash
-git clone
+git clone https://github.com/saufiroja/Goetia.git
+cd Goetia
+```
+2. Install dependencies
+
+```bash
+go mod tidy
+go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.18.0
+go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31.0
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
 ```
 
-2. Run the application using Docker Compose
+### Usage
+1. Run the application using docker-compose
 
 ```bash
 make docker-up
 ```
 
-3. Run the application locally
+2. Run the application in local
 
 ```bash
 make dev
 ```
 
-4Open the application in your browser
+3. To Generate proto file
 
 ```bash
-http://localhost:8080
+make protoc
 ```
 
-## Running the tests
+### Endpoints
+| METHOD |        Endpoint         |       Description        |
+|:------:|:-----------------------:|:------------------------:|
+|  GET   |       {url}/todos       |    Get all todos list    |
+|  GET   |    {url}/todos/{id}     |      Get todo by id      |
+|  PUT   |    {url}/todos/{id}     |       Update todo        |
+| PATCH  | {url}/todos/{id}/status | Update todo status by id |
+|  POST  |       {url}/todos       |       Create todo        |
+| DELETE |    {url}/todos/{id}     |    Delete todo by id     |
 
-```bash
-go test ./...
-```
 
-## Built With
+## Tech Stack
 
-- [Go](https://golang.org/) - The programming language used
-- [Docker](https://www.docker.com/) - Containerization
-- [Docker Compose](https://docs.docker.com/compose/) - Container orchestration
-- [GoLand](https://www.jetbrains.com/go/) - IDE
-- [Postman](https://www.getpostman.com/) - API testing
-- [PostgreSQL](https://www.postgresql.org/) - Database
-- [Redis](https://redis.io/) - Cache
-- [RabbitMQ](https://www.rabbitmq.com/) - Message broker
-- [gRPC](https://grpc.io/) - Remote procedure call framework
+- Go - The programming language used
+- Docker - Containerization
+- Docker Compose - Container orchestration
+- PostgresSQL- Database
+- Redis- Cache
+- gRPC - Remote procedure call framework
 - gRPC Gateway - gRPC to HTTP reverse proxy
-- Http Router - HTTP request router
-- CQRS - Command Query Responsibility Segregation
-- Jeager - Distributed tracing
-- Prometheus - Monitoring
-- Grafana - Metrics visualization
+- Http Server - HTTP server
+- Jaeger - Distributed tracing
+- Prometheus - Metrics
+- Grafana - Visualization
 - Logrus - Logging
 - Loki - Log aggregation
 
 ## License
-
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details

@@ -17,6 +17,7 @@ services:
         - prometheus
     networks:
       - todos
+    restart: on-failure
   postgres:
     image: postgres:15
     environment:
