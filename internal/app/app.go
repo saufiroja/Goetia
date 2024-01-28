@@ -45,7 +45,7 @@ func (a *AppFactor) Start(ctx context.Context) {
 	}()
 
 	go func() {
-		a.Rest = NewRest(conf.Http.Port, grpcListen, ctx)
+		a.Rest = NewRest(conf.Http.Port, grpcListen, ctx, a.Grpc)
 		a.Rest.HttpStart()
 	}()
 

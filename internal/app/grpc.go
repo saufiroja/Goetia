@@ -11,7 +11,7 @@ import (
 )
 
 type Grpc struct {
-	server *grpc.Server
+	*grpc.Server
 }
 
 func NewGrpc(dependencies controllers.ITodoController) *Grpc {
@@ -23,18 +23,20 @@ func NewGrpc(dependencies controllers.ITodoController) *Grpc {
 
 	internalGrpc.RegisterTodosServer(grpcServer, dependencies)
 
+	grpc_prometheus.Register(grpcServer)
+
 	return &Grpc{
-		server: grpcServer,
+		grpcServer,
 	}
 }
 
 func (g *Grpc) GrpcStart(listener net.Listener) {
-	err := g.server.Serve(listener)
+	err := g.Serve(listener)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func (g *Grpc) GrpcShutdown(ctx context.Context) {
-	g.server.GracefulStop()
+	g.GracefulStop()
 }
