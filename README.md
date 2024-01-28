@@ -5,6 +5,14 @@ The principle of using gRPC and Rest HTTP in 1 application is to use a grpc gate
 Grpc gateway is a proxy that can be used to access the gRPC service using the Rest HTTP protocol. 
 This repository can be used as a reference to learn the principles of using gRPC and Rest HTTP in 1 application.
 
+## Upcoming Features
+- Unit Testing
+- Integration Testing
+- End to End Testing
+- Loki for Log Aggregation
+- Metrics with Prometheus (on progress)
+- Deployment to Kubernetes k3s (on progress)
+
 ## Getting Started
 ### Prerequisites
 
@@ -76,6 +84,7 @@ make protoc
 - Grafana - Visualization
 - Logrus - Logging
 - Loki - Log aggregation
+- CI/CD - Continuous integration and delivery
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
