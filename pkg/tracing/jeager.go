@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"github.com/opentracing/opentracing-go"
 	"github.com/saufiroja/cqrs/config"
+	"github.com/saufiroja/cqrs/pkg/logger"
 	"github.com/uber/jaeger-client-go"
 	jeagerCfg "github.com/uber/jaeger-client-go/config"
-	"log"
 )
 
 type Tracing struct {
 }
 
-func NewTracing(conf *config.AppConfig) *Tracing {
+func NewTracing(conf *config.AppConfig, log *logger.Logger) *Tracing {
 	cfg := jeagerCfg.Configuration{
 		ServiceName: conf.App.ServiceName,
 		Sampler: &jeagerCfg.SamplerConfig{
@@ -30,12 +30,13 @@ func NewTracing(conf *config.AppConfig) *Tracing {
 		jeagerCfg.ZipkinSharedRPCSpan(true),
 	)
 	if err != nil {
+		log.StartLogger("jaeger.go", "NewTracing").Error("error connecting to jaeger")
 		panic(err)
 	}
 
 	opentracing.SetGlobalTracer(tracer)
 
-	log.Println("Jaeger Tracing is enabled")
+	log.StartLogger("jaeger.go", "NewTracing").Info("connected to jaeger")
 
 	return &Tracing{}
 }

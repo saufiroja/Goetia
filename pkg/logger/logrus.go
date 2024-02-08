@@ -20,3 +20,10 @@ func NewLogger() *Logger {
 
 	return &Logger{logger}
 }
+
+func (l *Logger) StartLogger(fileName string, nameFunc string) *logrus.Entry {
+	return l.WithFields(logrus.Fields{
+		"file": fileName,
+		"func": nameFunc,
+	})
+}

@@ -28,16 +28,17 @@ func (m *Module) StartModule(conf *config.AppConfig, reg *prometheus.Registry) {
 
 	// metrics
 	metrics := metric.NewMetrics(reg, conf.App.ServiceName)
-	trace := tracing.NewTracing(conf)
+	trace := tracing.NewTracing(conf, log)
 	m.StartMetrics(reg, conf)
 
 	// database
-	redisCli := redis.NewRedis(conf)
-	db := database.NewPostgres(conf)
+	redisCli := redis.NewRedis(conf, log)
+	db := database.NewPostgres()
+	startDb := db.StartDatabase(conf, log)
 
 	// application
 	todoRepository := repositories.NewRepository(trace)
-	todoService := services.NewService(db, log, todoRepository, redisCli, trace)
+	todoService := services.NewService(startDb, log, todoRepository, redisCli, trace)
 
 	// handlers
 	todoHandler := event.NewTodoHandler(todoService, trace)

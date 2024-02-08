@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	"github.com/saufiroja/cqrs/config"
-	"log"
+	"github.com/saufiroja/cqrs/pkg/logger"
 	"time"
 )
 
@@ -13,7 +13,7 @@ type Redis struct {
 	client *redis.Client
 }
 
-func NewRedis(conf *config.AppConfig) *Redis {
+func NewRedis(conf *config.AppConfig, log *logger.Logger) *Redis {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", conf.Redis.Host, conf.Redis.Port),
 		Password: "",
@@ -25,10 +25,11 @@ func NewRedis(conf *config.AppConfig) *Redis {
 
 	_, err := rdb.Ping(ctx).Result()
 	if err != nil {
+		log.StartLogger("redis.go", "NewRedis").Error("error connecting to redis")
 		panic(err)
 	}
 
-	log.Println("redis connected")
+	log.StartLogger("redis.go", "NewRedis").Info("connected to redis")
 
 	return &Redis{client: rdb}
 }

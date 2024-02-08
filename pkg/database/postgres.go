@@ -6,14 +6,18 @@ import (
 	"fmt"
 	_ "github.com/lib/pq"
 	"github.com/saufiroja/cqrs/config"
-	"log"
+	"github.com/saufiroja/cqrs/pkg/logger"
 )
 
 type Postgres struct {
-	db *sql.DB
+	*sql.DB
 }
 
-func NewPostgres(conf *config.AppConfig) *Postgres {
+func NewPostgres() *Postgres {
+	return &Postgres{}
+}
+
+func (p *Postgres) StartDatabase(conf *config.AppConfig, log *logger.Logger) *Postgres {
 	host := conf.Postgres.Host
 	port := conf.Postgres.Port
 	user := conf.Postgres.User
@@ -25,13 +29,17 @@ func NewPostgres(conf *config.AppConfig) *Postgres {
 
 	db, err := sql.Open("postgres", str)
 	if err != nil {
-		return nil
+		errMsg := fmt.Sprintf("error connecting to postgres: %v", err)
+		log.StartLogger("postgres.go", "NewPostgres").Error(errMsg)
+		panic(err)
 	}
 
 	// check connection
 	err = db.Ping()
 	if err != nil {
-		return nil
+		errMsg := fmt.Sprintf("error connecting to postgres: %v", err)
+		log.StartLogger("postgres.go", "NewPostgres").Error(errMsg)
+		panic(err)
 	}
 
 	// set max connection
@@ -40,31 +48,33 @@ func NewPostgres(conf *config.AppConfig) *Postgres {
 	db.SetConnMaxLifetime(5)
 	db.SetConnMaxIdleTime(5)
 
-	log.Println("connected to postgres")
+	log.StartLogger("postgres.go", "NewPostgres").Info("connected to postgres")
 
-	return &Postgres{
-		db: db,
-	}
-}
+	p.DB = db
 
-func (p *Postgres) Open() *sql.DB {
-	return p.db
+	return p
 }
 
 func (p *Postgres) StartTransaction() (*sql.Tx, error) {
-	return p.db.Begin()
+	return p.Begin()
 }
 
 func (p *Postgres) CommitTransaction(tx *sql.Tx) {
-	_ = tx.Commit()
+	err := tx.Commit()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (p *Postgres) RollbackTransaction(tx *sql.Tx) {
-	_ = tx.Rollback()
+	err := tx.Rollback()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (p *Postgres) Close(ctx context.Context) {
-	err := p.db.Close()
+	err := p.DB.Close()
 	if err != nil {
 		panic(err)
 	}
