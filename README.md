@@ -38,22 +38,25 @@ go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
 ```
 
 ### Usage
-1. Run the application using docker-compose
+
+1. To Generate proto file
+
+```bash
+make protoc
+```
+
+2. Run the application using docker-compose
 
 ```bash
 make docker-up
 ```
 
-2. Run the application in local
+3. Open grafana dashboard
 
 ```bash
-make dev
-```
-
-3. To Generate proto file
-
-```bash
-make protoc
+username: admin
+password: admin
+http://localhost:3000
 ```
 
 ### Endpoints
