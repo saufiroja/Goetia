@@ -13,11 +13,10 @@ services:
     depends_on:
         - postgres
         - redis
-        - jaeger
-        - prometheus
     networks:
       - todos
     restart: on-failure
+
   postgres:
     image: postgres:15
     environment:
@@ -32,6 +31,7 @@ services:
       - ./database/migrations:/docker-entrypoint-initdb.d/
     networks:
         - todos
+
   redis:
       image: redis:latest
       ports:
@@ -43,6 +43,7 @@ services:
         - redis-server
       networks:
           - todos
+
   redis-commander:
       image: rediscommander/redis-commander:latest
       ports:
@@ -55,6 +56,7 @@ services:
         - redis
       networks:
           - todos
+
   prometheus:
     image: prom/prometheus:v2.40.4
     ports:
@@ -63,6 +65,7 @@ services:
       - ./provisioning/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
         - todos
+
   grafana:
     image: grafana/grafana:9.3.0
     ports:
@@ -70,11 +73,13 @@ services:
     depends_on:
       - jaeger
       - prometheus
+      - loki
     networks:
       - todos
     volumes:
         - grafana-data:/var/lib/grafana
         - ./provisioning:/etc/grafana/provisioning
+
   jaeger:
     container_name: jaeger_container
     image: jaegertracing/all-in-one:1.21
@@ -91,6 +96,28 @@ services:
       - '9411:9411'
     networks:
         - todos
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - '3100:3100'
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+        - todos
+
+  promtail:
+    image:  grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - ./provisioning/promtail/promtail-config.yaml:/etc/promtail/docker-config.yaml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/docker-config.yaml
+    depends_on:
+      - loki
+    networks:
+      - todos
+
 volumes:
     postgres-data:
     redis:
