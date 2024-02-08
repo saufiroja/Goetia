@@ -1,10 +1,22 @@
 package logger
 
-import "github.com/sirupsen/logrus"
+import (
+	"github.com/sirupsen/logrus"
+	"io"
+	"log"
+	"os"
+)
 
-func NewLogger() *logrus.Logger {
+type Logger struct {
+	*logrus.Logger
+}
+
+func NewLogger() *Logger {
 	logger := logrus.New()
-	logger.SetFormatter(&logrus.JSONFormatter{})
+	logger.Formatter = &logrus.JSONFormatter{}
 	logger.SetLevel(logrus.DebugLevel)
-	return logger
+	log.SetOutput(logger.Writer())
+	logger.SetOutput(io.MultiWriter(os.Stdout))
+
+	return &Logger{logger}
 }

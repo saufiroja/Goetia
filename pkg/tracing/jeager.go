@@ -21,7 +21,6 @@ func NewTracing(conf *config.AppConfig) *Tracing {
 			Param: 1,
 		},
 		Reporter: &jeagerCfg.ReporterConfig{
-			LogSpans:          true,
 			CollectorEndpoint: fmt.Sprintf("http://%s:%s/api/traces", conf.Jaeger.Host, conf.Jaeger.Port),
 		},
 	}

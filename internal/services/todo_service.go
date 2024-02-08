@@ -12,6 +12,7 @@ import (
 	"github.com/saufiroja/cqrs/internal/grpc"
 	"github.com/saufiroja/cqrs/internal/repositories"
 	"github.com/saufiroja/cqrs/pkg/database"
+	"github.com/saufiroja/cqrs/pkg/logger"
 	redisCli "github.com/saufiroja/cqrs/pkg/redis"
 	"github.com/saufiroja/cqrs/pkg/tracing"
 	"github.com/sirupsen/logrus"
@@ -20,13 +21,13 @@ import (
 
 type service struct {
 	db             *database.Postgres
-	log            *logrus.Logger
+	log            *logger.Logger
 	todoRepository repositories.ITodoRepository
 	redisCli       *redisCli.Redis
 	tracing        *tracing.Tracing
 }
 
-func NewService(db *database.Postgres, log *logrus.Logger, todoRepository repositories.ITodoRepository, redisCli *redisCli.Redis, tracing *tracing.Tracing) ITodoService {
+func NewService(db *database.Postgres, log *logger.Logger, todoRepository repositories.ITodoRepository, redisCli *redisCli.Redis, tracing *tracing.Tracing) ITodoService {
 	return &service{
 		db:             db,
 		log:            log,
@@ -51,13 +52,18 @@ func (s *service) InsertTodo(ctx context.Context, request *grpc.TodoRequest) err
 
 	tx, err := s.db.StartTransaction()
 	if err != nil {
-		s.log.Error("error starting transaction")
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "InsertTodo",
+		}).Error("error starting transaction")
 		return err
 	}
 
 	err = s.todoRepository.InsertTodo(ctx, tx, input)
 	if err != nil {
-		s.log.Error("error inserting todos")
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+		}).Error("error inserting todos")
 		s.db.RollbackTransaction(tx)
 		return err
 	}
@@ -67,9 +73,17 @@ func (s *service) InsertTodo(ctx context.Context, request *grpc.TodoRequest) err
 	// delete data from redis
 	err = s.redisCli.Del(redisCli.TodosKey)
 	if err != nil {
-		s.log.Error("error deleting todos")
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "InsertTodo",
+		}).Error("error deleting todos")
 		return err
 	}
+
+	s.log.WithFields(logrus.Fields{
+		"file": "todo_service.go",
+		"func": "InsertTodo",
+	}).Info("success inserting todos")
 
 	return nil
 }
@@ -83,23 +97,37 @@ func (s *service) GetAllTodo(ctx context.Context) ([]responses.GetAllTodoRespons
 	if errors.Is(err, redis.Nil) {
 		todos, err := s.todoRepository.GetAllTodos(ctx, s.db.Open())
 		if err != nil {
-			s.log.Error("error getting all todos")
+			s.log.WithFields(logrus.Fields{
+				"file": "todo_service.go",
+				"func": "GetAllTodo",
+			}).Error("error getting todos")
 			return nil, err
 		}
 
 		// marshal todos
 		jsonData, err := json.Marshal(todos)
 		if err != nil {
-			s.log.Error("error marshal todos")
+			s.log.WithFields(logrus.Fields{
+				"file": "todo_service.go",
+				"func": "GetAllTodo",
+			}).Error("error marshal todos")
 			return nil, err
 		}
 
 		// set data to redis
 		err = s.redisCli.Set(redisCli.TodosKey, jsonData, 5*time.Minute)
 		if err != nil {
-			s.log.Error(fmt.Sprintf("error setting todos to redis: %v", err))
+			s.log.WithFields(logrus.Fields{
+				"file": "todo_service.go",
+				"func": "GetAllTodo",
+			}).Error(fmt.Sprintf("error setting todos to redis: %v", err))
 			return nil, err
 		}
+
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "GetAllTodo",
+		}).Info("success getting all todos")
 
 		return todos, nil
 	}
@@ -107,9 +135,17 @@ func (s *service) GetAllTodo(ctx context.Context) ([]responses.GetAllTodoRespons
 	var todos []responses.GetAllTodoResponse
 	err = json.Unmarshal([]byte(data), &todos)
 	if err != nil {
-		s.log.Error("error unmarshal todos")
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "GetAllTodo",
+		}).Error("error unmarshal todos")
 		return nil, err
 	}
+
+	s.log.WithFields(logrus.Fields{
+		"file": "todo_service.go",
+		"func": "GetAllTodo",
+	}).Info("success getting all todos")
 
 	return todos, nil
 }
@@ -122,23 +158,37 @@ func (s *service) GetTodoById(ctx context.Context, todoId string) (responses.Get
 	if errors.Is(err, redis.Nil) {
 		todo, err := s.todoRepository.GetTodoById(ctx, s.db.Open(), todoId)
 		if err != nil {
-			s.log.Error("error getting todos by id")
+			s.log.WithFields(logrus.Fields{
+				"file": "todo_service.go",
+				"func": "GetTodoById",
+			}).Error("error getting todos by id")
 			return todo, err
 		}
 
 		// marshal todos
 		jsonData, err := json.Marshal(todo)
 		if err != nil {
-			s.log.Error("error marshal todos")
+			s.log.WithFields(logrus.Fields{
+				"file": "todo_service.go",
+				"func": "GetTodoById",
+			}).Error("error marshal todos")
 			return todo, err
 		}
 
 		// set data to redis
 		err = s.redisCli.Set(redisCli.TodoByIdKey, jsonData, 5*time.Minute)
 		if err != nil {
-			s.log.Error(fmt.Sprintf("error setting todos to redis: %v", err))
+			s.log.WithFields(logrus.Fields{
+				"file": "todo_service.go",
+				"func": "GetTodoById",
+			}).Error(fmt.Sprintf("error setting todos to redis: %v", err))
 			return todo, err
 		}
+
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "GetTodoById",
+		}).Info("success getting todos by id")
 
 		return todo, nil
 	}
@@ -146,9 +196,17 @@ func (s *service) GetTodoById(ctx context.Context, todoId string) (responses.Get
 	var todo responses.GetTodoByIdResponse
 	err = json.Unmarshal([]byte(data), &todo)
 	if err != nil {
-		s.log.Error("error unmarshal todos")
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "GetTodoById",
+		}).Error("error unmarshal todos")
 		return todo, err
 	}
+
+	s.log.WithFields(logrus.Fields{
+		"file": "todo_service.go",
+		"func": "GetTodoById",
+	}).Info("success getting todos by id")
 
 	return todo, nil
 }
@@ -167,19 +225,28 @@ func (s *service) UpdateTodoById(ctx context.Context, request *grpc.UpdateTodoRe
 
 	_, err := s.todoRepository.GetTodoById(ctx, s.db.Open(), input.TodoId)
 	if err != nil {
-		s.log.Error("error getting todos by id")
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "UpdateTodoById",
+		}).Error("error getting todos by id")
 		return err
 	}
 
 	tx, err := s.db.StartTransaction()
 	if err != nil {
-		s.log.Error("error starting transaction")
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "UpdateTodoById",
+		}).Error("error starting transaction")
 		return err
 	}
 
 	err = s.todoRepository.UpdateTodoById(ctx, tx, input)
 	if err != nil {
-		s.log.Error("error updating todos by id")
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "UpdateTodoById",
+		}).Error("error updating todos by id")
 		s.db.RollbackTransaction(tx)
 		return err
 	}
@@ -189,15 +256,26 @@ func (s *service) UpdateTodoById(ctx context.Context, request *grpc.UpdateTodoRe
 	// delete data from redis
 	err = s.redisCli.Del(redisCli.TodosKey)
 	if err != nil {
-		s.log.Error("error deleting todos")
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "UpdateTodoById",
+		}).Error("error deleting todos")
 		return err
 	}
 
 	err = s.redisCli.Del(redisCli.TodoByIdKey)
 	if err != nil {
-		s.log.Error("error deleting todos")
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "UpdateTodoById",
+		}).Error("error deleting todos by id")
 		return err
 	}
+
+	s.log.WithFields(logrus.Fields{
+		"file": "todo_service.go",
+		"func": "UpdateTodoById",
+	}).Info("success updating todos by id")
 
 	return nil
 }
@@ -214,7 +292,10 @@ func (s *service) UpdateTodoStatusById(ctx context.Context, request *grpc.Update
 
 	todo, err := s.todoRepository.GetTodoById(ctx, s.db.Open(), input.TodoId)
 	if err != nil {
-		s.log.Error("error getting todos by id")
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "UpdateTodoStatusById",
+		}).Error("error getting todos by id")
 		return err
 	}
 
@@ -226,13 +307,19 @@ func (s *service) UpdateTodoStatusById(ctx context.Context, request *grpc.Update
 
 	tx, err := s.db.StartTransaction()
 	if err != nil {
-		s.log.Error("error starting transaction")
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "UpdateTodoStatusById",
+		}).Error("error starting transaction")
 		return err
 	}
 
 	err = s.todoRepository.UpdateTodoStatusById(ctx, tx, input)
 	if err != nil {
-		s.log.Error("error updating todos status by id")
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "UpdateTodoStatusById",
+		}).Error("error updating todos status by id")
 		s.db.RollbackTransaction(tx)
 		return err
 	}
@@ -242,9 +329,26 @@ func (s *service) UpdateTodoStatusById(ctx context.Context, request *grpc.Update
 	// delete data from redis
 	err = s.redisCli.Del(redisCli.TodosKey)
 	if err != nil {
-		s.log.Error("error deleting todos")
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "UpdateTodoStatusById",
+		}).Error("error deleting todos")
 		return err
 	}
+
+	err = s.redisCli.Del(redisCli.TodoByIdKey)
+	if err != nil {
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "DeleteTodoById",
+		}).Error("error deleting todos by id")
+		return err
+	}
+
+	s.log.WithFields(logrus.Fields{
+		"file": "todo_service.go",
+		"func": "UpdateTodoStatusById",
+	}).Info("success updating todos status by id")
 
 	return nil
 }
@@ -255,19 +359,28 @@ func (s *service) DeleteTodoById(ctx context.Context, todoId string) error {
 
 	_, err := s.todoRepository.GetTodoById(ctx, s.db.Open(), todoId)
 	if err != nil {
-		s.log.Error("error getting todos by id")
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "DeleteTodoById",
+		}).Error("error getting todos by id")
 		return err
 	}
 
 	tx, err := s.db.StartTransaction()
 	if err != nil {
-		s.log.Error("error starting transaction")
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "DeleteTodoById",
+		}).Error("error starting transaction")
 		return err
 	}
 
 	err = s.todoRepository.DeleteTodoById(ctx, tx, todoId)
 	if err != nil {
-		s.log.Error("error deleting todos by id")
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "DeleteTodoById",
+		}).Error("error deleting todos by id")
 		s.db.RollbackTransaction(tx)
 		return err
 	}
@@ -277,9 +390,26 @@ func (s *service) DeleteTodoById(ctx context.Context, todoId string) error {
 	// delete data from redis
 	err = s.redisCli.Del(redisCli.TodosKey)
 	if err != nil {
-		s.log.Error("error deleting todos")
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "DeleteTodoById",
+		}).Error("error deleting todos")
 		return err
 	}
+
+	err = s.redisCli.Del(redisCli.TodoByIdKey)
+	if err != nil {
+		s.log.WithFields(logrus.Fields{
+			"file": "todo_service.go",
+			"func": "DeleteTodoById",
+		}).Error("error deleting todos by id")
+		return err
+	}
+
+	s.log.WithFields(logrus.Fields{
+		"file": "todo_service.go",
+		"func": "DeleteTodoById",
+	}).Info("success deleting todos by id")
 
 	return nil
 }
