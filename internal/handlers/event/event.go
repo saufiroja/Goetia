@@ -1,4 +1,4 @@
-package handlers
+package event
 
 import (
 	"github.com/saufiroja/cqrs/internal/handlers/command"

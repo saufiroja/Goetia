@@ -3,18 +3,18 @@ package controllers
 import (
 	"context"
 	"github.com/saufiroja/cqrs/internal/grpc"
-	"github.com/saufiroja/cqrs/internal/handlers"
+	"github.com/saufiroja/cqrs/internal/handlers/event"
 	metric "github.com/saufiroja/cqrs/pkg/metrics"
 	"github.com/saufiroja/cqrs/pkg/tracing"
 )
 
 type Controllers struct {
-	handler *handlers.TodoHandler
+	handler *event.TodoHandler
 	tracing *tracing.Tracing
 	metrics *metric.Metrics
 }
 
-func NewControllers(handler *handlers.TodoHandler, tracing *tracing.Tracing, metrics *metric.Metrics) ITodoController {
+func NewControllers(handler *event.TodoHandler, tracing *tracing.Tracing, metrics *metric.Metrics) ITodoController {
 	return &Controllers{
 		handler: handler,
 		tracing: tracing,

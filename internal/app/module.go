@@ -4,7 +4,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/saufiroja/cqrs/config"
 	"github.com/saufiroja/cqrs/internal/delivery/controllers"
-	"github.com/saufiroja/cqrs/internal/handlers"
+	"github.com/saufiroja/cqrs/internal/handlers/event"
 	"github.com/saufiroja/cqrs/internal/repositories"
 	"github.com/saufiroja/cqrs/internal/services"
 	"github.com/saufiroja/cqrs/pkg/database"
@@ -40,7 +40,7 @@ func (m *Module) StartModule(conf *config.AppConfig, reg *prometheus.Registry) {
 	todoService := services.NewService(db, log, todoRepository, redisCli, trace)
 
 	// handlers
-	todoHandler := handlers.NewTodoHandler(todoService, trace)
+	todoHandler := event.NewTodoHandler(todoService, trace)
 
 	// controllers
 	todoControllers := controllers.NewControllers(todoHandler, trace, metrics)
