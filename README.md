@@ -10,7 +10,6 @@ This repository can be used as a reference to learn the principles of using gRPC
 - Integration Testing
 - End to End Testing
 - Loki for Log Aggregation
-- Metrics with Prometheus (on progress)
 - Deployment to Kubernetes k3s (on progress)
 
 ## Getting Started
