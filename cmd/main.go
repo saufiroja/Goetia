@@ -7,5 +7,5 @@ import (
 
 func main() {
 	start := app.NewAppFactor()
-	start.Start(context.Background())
+	start.StartApp(context.Background())
 }

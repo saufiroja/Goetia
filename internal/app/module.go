@@ -1,26 +1,55 @@
 package app
 
 import (
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/saufiroja/cqrs/config"
 	"github.com/saufiroja/cqrs/internal/delivery/controllers"
 	"github.com/saufiroja/cqrs/internal/handlers"
 	"github.com/saufiroja/cqrs/internal/repositories"
 	"github.com/saufiroja/cqrs/internal/services"
 	"github.com/saufiroja/cqrs/pkg/database"
+	"github.com/saufiroja/cqrs/pkg/logger"
+	metric "github.com/saufiroja/cqrs/pkg/metrics"
 	"github.com/saufiroja/cqrs/pkg/redis"
 	"github.com/saufiroja/cqrs/pkg/tracing"
-	"github.com/sirupsen/logrus"
 )
 
-func NewModule(db *database.Postgres, log *logrus.Logger, redis *redis.Redis, tracing *tracing.Tracing) controllers.ITodoController {
+type Module struct {
+	controllers.ITodoController
+}
+
+func NewModule() *Module {
+	return &Module{}
+}
+
+func (m *Module) StartModule(conf *config.AppConfig, reg *prometheus.Registry) {
+	// configuration
+	log := logger.NewLogger()
+
+	// metrics
+	metrics := metric.NewMetrics(reg, conf.App.ServiceName)
+	trace := tracing.NewTracing(conf)
+	m.StartMetrics(reg, conf)
+
+	// database
+	redisCli := redis.NewRedis(conf)
+	db := database.NewPostgres(conf)
+
 	// application
-	todoRepository := repositories.NewRepository(tracing)
-	todoService := services.NewService(db, log, todoRepository, redis, tracing)
+	todoRepository := repositories.NewRepository(trace)
+	todoService := services.NewService(db, log, todoRepository, redisCli, trace)
 
 	// handlers
-	todoHandler := handlers.NewTodoHandler(todoService, tracing)
+	todoHandler := handlers.NewTodoHandler(todoService, trace)
 
 	// controllers
-	todoControllers := controllers.NewControllers(todoHandler, tracing)
+	todoControllers := controllers.NewControllers(todoHandler, trace, metrics)
 
-	return todoControllers
+	m.ITodoController = todoControllers
+}
+
+func (m *Module) StartMetrics(reg *prometheus.Registry, conf *config.AppConfig) {
+	metricsGauge := metric.NewMetricsGauge(reg, conf.App.ServiceName)
+	metricsGauge.SetTotalCPU()
+	metricsGauge.SetTotalMemory()
 }

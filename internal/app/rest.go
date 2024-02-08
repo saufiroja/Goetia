@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	internalGrpc "github.com/saufiroja/cqrs/internal/grpc"
 	metrics "github.com/slok/go-http-metrics/metrics/prometheus"
@@ -24,7 +25,7 @@ type Rest struct {
 	*http.Server
 }
 
-func NewRest(port string, listener net.Listener, ctx context.Context, grpcServer *Grpc) *Rest {
+func NewRest(port string, listener net.Listener, ctx context.Context, grpcServer *Grpc, reg *prometheus.Registry) *Rest {
 	conn, err := grpc.DialContext(
 		ctx,
 		listener.Addr().String(),
@@ -43,7 +44,7 @@ func NewRest(port string, listener net.Listener, ctx context.Context, grpcServer
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/metrics", promhttp.Handler())
+	mux.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
 
 	// mux any http request to grpc server
 	mux.Handle("/", gatewayMux)
