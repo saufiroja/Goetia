@@ -9,7 +9,6 @@ This repository can be used as a reference to learn the principles of using gRPC
 - Unit Testing (on progress)
 - Integration Testing
 - End to End Testing
-- Loki for Log Aggregation ((on progress)
 - Deployment to Kubernetes k3s (on research)
 
 ## Getting Started
@@ -70,20 +69,24 @@ make protoc
 
 ## Tech Stack
 
-- Go - The programming language used
-- Docker - Containerization
-- Docker Compose - Container orchestration
-- PostgresSQL- Database
-- Redis- Cache
-- gRPC - Remote procedure call framework
-- gRPC Gateway - gRPC to HTTP reverse proxy
-- Http Server - HTTP server
-- Jaeger - Distributed tracing
-- Prometheus - Metrics
-- Grafana - Visualization
-- Logrus - Logging
-- Loki - Log aggregation
-- CI/CD - Continuous integration and delivery
+- ✅ Go - The programming language used
+- ✅ Docker - Containerization
+- ✅ Docker Compose - Container orchestration
+- ✅ PostgresSQL- Database
+- ✅ Redis- Cache
+- ✅ gRPC - Remote procedure call framework
+- ✅ gRPC Gateway - gRPC to HTTP reverse proxy
+- ✅ Http Server - HTTP server
+- ✅ Jaeger - Distributed tracing
+- ✅ Prometheus - Metrics
+- ✅ Grafana - Visualization
+- ✅ Logrus - Logging 
+- ✅ Loki - Log aggregation
+- ✅ CI/CD - Continuous integration and delivery
+- [ ] Kubernetes - Container orchestration (on research)
+- [ ] Unit Testing - Testing (on progress)
+- [ ] Integration Testing - Testing
+- [ ] End to End Testing - Testing
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
