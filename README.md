@@ -6,11 +6,11 @@ Grpc gateway is a proxy that can be used to access the gRPC service using the Re
 This repository can be used as a reference to learn the principles of using gRPC and Rest HTTP in 1 application.
 
 ## Upcoming Features
-- Unit Testing
+- Unit Testing (on progress)
 - Integration Testing
 - End to End Testing
-- Loki for Log Aggregation
-- Deployment to Kubernetes k3s (on progress)
+- Loki for Log Aggregation ((on progress)
+- Deployment to Kubernetes k3s (on research)
 
 ## Getting Started
 ### Prerequisites
