@@ -33,12 +33,12 @@ func (m *Module) StartModule(conf *config.AppConfig, reg *prometheus.Registry) {
 
 	// database
 	redisCli := redis.NewRedis(conf, log)
-	db := database.NewPostgres()
-	startDb := db.StartDatabase(conf, log)
+	db := database.NewPostgres(conf, log)
+	db.StartDatabase()
 
 	// application
 	todoRepository := repositories.NewRepository(trace)
-	todoService := services.NewService(startDb, log, todoRepository, redisCli, trace)
+	todoService := services.NewService(db, log, todoRepository, redisCli, trace)
 
 	// handlers
 	todoHandler := event.NewTodoHandler(todoService, trace)

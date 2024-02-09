@@ -13,11 +13,7 @@ type Postgres struct {
 	*sql.DB
 }
 
-func NewPostgres() *Postgres {
-	return &Postgres{}
-}
-
-func (p *Postgres) StartDatabase(conf *config.AppConfig, log *logger.Logger) *Postgres {
+func NewPostgres(conf *config.AppConfig, log *logger.Logger) *Postgres {
 	host := conf.Postgres.Host
 	port := conf.Postgres.Port
 	user := conf.Postgres.User
@@ -50,9 +46,11 @@ func (p *Postgres) StartDatabase(conf *config.AppConfig, log *logger.Logger) *Po
 
 	log.StartLogger("postgres.go", "NewPostgres").Info("connected to postgres")
 
-	p.DB = db
+	return &Postgres{db}
+}
 
-	return p
+func (p *Postgres) StartDatabase() *sql.DB {
+	return p.DB
 }
 
 func (p *Postgres) StartTransaction() (*sql.Tx, error) {
