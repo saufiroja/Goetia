@@ -14,10 +14,10 @@ import (
 type InsertTodoCommand struct {
 	todoService services.ITodoService
 	validation  *validator.Validation
-	tracing     *tracing.Tracing
+	tracing     tracing.ITracing
 }
 
-func NewInsertTodoCommand(todoService services.ITodoService, validation *validator.Validation, tracing *tracing.Tracing) *InsertTodoCommand {
+func NewInsertTodoCommand(todoService services.ITodoService, validation *validator.Validation, tracing tracing.ITracing) *InsertTodoCommand {
 	return &InsertTodoCommand{
 		todoService: todoService,
 		validation:  validation,

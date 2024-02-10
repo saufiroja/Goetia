@@ -12,10 +12,10 @@ import (
 
 type UpdateStatusTodoByIdCommand struct {
 	todoService services.ITodoService
-	tracing     *tracing.Tracing
+	tracing     tracing.ITracing
 }
 
-func NewUpdateStatusTodoByIdCommand(todoService services.ITodoService, tracing *tracing.Tracing) *UpdateStatusTodoByIdCommand {
+func NewUpdateStatusTodoByIdCommand(todoService services.ITodoService, tracing tracing.ITracing) *UpdateStatusTodoByIdCommand {
 	return &UpdateStatusTodoByIdCommand{
 		todoService: todoService,
 		tracing:     tracing,

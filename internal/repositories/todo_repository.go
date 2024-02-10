@@ -1,3 +1,4 @@
+//go:generate mockgen -destination ../../mocks/mock_todo.go -package mocks github.com/saufiroja/cqrs/internal/repositories ITodoRepository
 package repositories
 
 import (
@@ -9,10 +10,10 @@ import (
 )
 
 type repository struct {
-	tracing *tracing.Tracing
+	tracing tracing.ITracing
 }
 
-func NewRepository(tracing *tracing.Tracing) ITodoRepository {
+func NewRepository(tracing tracing.ITracing) ITodoRepository {
 	return &repository{
 		tracing: tracing,
 	}

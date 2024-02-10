@@ -12,10 +12,10 @@ import (
 
 type DeleteTodoByIdCommand struct {
 	todoService services.ITodoService
-	tracing     *tracing.Tracing
+	tracing     tracing.ITracing
 }
 
-func NewDeleteTodoByIdCommand(todoService services.ITodoService, tracing *tracing.Tracing) *DeleteTodoByIdCommand {
+func NewDeleteTodoByIdCommand(todoService services.ITodoService, tracing tracing.ITracing) *DeleteTodoByIdCommand {
 	return &DeleteTodoByIdCommand{
 		todoService: todoService,
 		tracing:     tracing,

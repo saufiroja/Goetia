@@ -19,19 +19,19 @@ import (
 )
 
 type service struct {
-	db             *database.Postgres
-	log            *logger.Logger
+	db             database.IPostgres
+	log            logger.ILogger
 	todoRepository repositories.ITodoRepository
-	redisCli       *redisCli.Redis
-	tracing        *tracing.Tracing
+	redisCli       redisCli.IRedis
+	tracing        tracing.ITracing
 }
 
 func NewService(
-	db *database.Postgres,
-	log *logger.Logger,
+	db database.IPostgres,
+	log logger.ILogger,
 	todoRepository repositories.ITodoRepository,
-	redisCli *redisCli.Redis,
-	tracing *tracing.Tracing,
+	redisCli redisCli.IRedis,
+	tracing tracing.ITracing,
 ) ITodoService {
 	return &service{
 		db:             db,
@@ -89,7 +89,7 @@ func (s *service) GetAllTodo(ctx context.Context) ([]responses.GetAllTodoRespons
 	// get data from redis
 	data, err := s.redisCli.Get(redisCli.TodosKey)
 	if errors.Is(err, redis.Nil) {
-		todos, err := s.todoRepository.GetAllTodos(ctx, s.db.DB)
+		todos, err := s.todoRepository.GetAllTodos(ctx, s.db.Db())
 		if err != nil {
 			s.log.StartLogger("todo_service.go", "GetAllTodo").Error("error getting all todos")
 			return nil, err
@@ -133,7 +133,7 @@ func (s *service) GetTodoById(ctx context.Context, todoId string) (responses.Get
 
 	data, err := s.redisCli.Get(redisCli.TodoByIdKey)
 	if errors.Is(err, redis.Nil) {
-		todo, err := s.todoRepository.GetTodoById(ctx, s.db.DB, todoId)
+		todo, err := s.todoRepository.GetTodoById(ctx, s.db.Db(), todoId)
 		if err != nil {
 			errMsg := fmt.Sprintf("error getting todos by id: %s", todoId)
 			s.log.StartLogger("todo_service.go", "GetTodoById").Error(errMsg)
@@ -186,7 +186,7 @@ func (s *service) UpdateTodoById(ctx context.Context, request *grpc.UpdateTodoRe
 		UpdatedAt:   time.Unix(request.UpdatedAt, 0),
 	}
 
-	_, err := s.todoRepository.GetTodoById(ctx, s.db.DB, input.TodoId)
+	_, err := s.todoRepository.GetTodoById(ctx, s.db.Db(), input.TodoId)
 	if err != nil {
 		errMsg := fmt.Sprintf("error getting todos by id: %s", input.TodoId)
 		s.log.StartLogger("todo_service.go", "UpdateTodoById").Error(errMsg)
@@ -240,7 +240,7 @@ func (s *service) UpdateTodoStatusById(ctx context.Context, request *grpc.Update
 		UpdatedAt: time.Unix(request.UpdatedAt, 0),
 	}
 
-	todo, err := s.todoRepository.GetTodoById(ctx, s.db.DB, input.TodoId)
+	todo, err := s.todoRepository.GetTodoById(ctx, s.db.Db(), input.TodoId)
 	if err != nil {
 		errMsg := fmt.Sprintf("error getting todos by id: %s", input.TodoId)
 		s.log.StartLogger("todo_service.go", "UpdateTodoStatusById").Error(errMsg)
@@ -294,7 +294,7 @@ func (s *service) DeleteTodoById(ctx context.Context, todoId string) error {
 	tracer, ctx := s.tracing.StartSpan(ctx, "Service.DeleteTodoById")
 	defer tracer.Finish()
 
-	_, err := s.todoRepository.GetTodoById(ctx, s.db.DB, todoId)
+	_, err := s.todoRepository.GetTodoById(ctx, s.db.Db(), todoId)
 	if err != nil {
 		errMsg := fmt.Sprintf("error getting todos by id: %s", todoId)
 		s.log.StartLogger("todo_service.go", "DeleteTodoById").Error(errMsg)

@@ -12,10 +12,10 @@ import (
 
 type GetTodoByIdQuery struct {
 	todoService services.ITodoService
-	tracing     *tracing.Tracing
+	tracing     tracing.ITracing
 }
 
-func NewGetTodoByIdQuery(todoService services.ITodoService, tracing *tracing.Tracing) *GetTodoByIdQuery {
+func NewGetTodoByIdQuery(todoService services.ITodoService, tracing tracing.ITracing) *GetTodoByIdQuery {
 	return &GetTodoByIdQuery{
 		todoService: todoService,
 		tracing:     tracing,

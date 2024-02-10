@@ -13,18 +13,18 @@ type TodoHandler struct {
 	Command command.TodoCommand
 }
 
-func NewTodoHandler(todoService services.ITodoService, tracing *tracing.Tracing) *TodoHandler {
+func NewTodoHandler(todoService services.ITodoService, tracing tracing.ITracing) *TodoHandler {
 	validation := validator.NewValidation()
 
 	getAllTodoQuery := query.NewGetAllTodoQuery(todoService, tracing)
-	getTodoByIdQeury := query.NewGetTodoByIdQuery(todoService, tracing)
+	getTodoByIdQuery := query.NewGetTodoByIdQuery(todoService, tracing)
 
 	insertTodoCommand := command.NewInsertTodoCommand(todoService, validation, tracing)
 	updateTodoByIdCommand := command.NewUpdateTodoCommand(todoService, validation, tracing)
 	updateTodoStatusByIdCommand := command.NewUpdateStatusTodoByIdCommand(todoService, tracing)
 	deleteTodoByIdCommand := command.NewDeleteTodoByIdCommand(todoService, tracing)
 
-	todoQuery := query.NewTodoQuery(getAllTodoQuery, getTodoByIdQeury)
+	todoQuery := query.NewTodoQuery(getAllTodoQuery, getTodoByIdQuery)
 	todoCommands := command.NewTodoCommand(
 		insertTodoCommand,
 		updateTodoByIdCommand,

@@ -10,11 +10,11 @@ import (
 
 type Controllers struct {
 	handler *event.TodoHandler
-	tracing *tracing.Tracing
+	tracing tracing.ITracing
 	metrics *metric.Metrics
 }
 
-func NewControllers(handler *event.TodoHandler, tracing *tracing.Tracing, metrics *metric.Metrics) ITodoController {
+func NewControllers(handler *event.TodoHandler, tracing tracing.ITracing, metrics *metric.Metrics) ITodoController {
 	return &Controllers{
 		handler: handler,
 		tracing: tracing,
