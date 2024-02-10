@@ -1,3 +1,4 @@
+//go:generate mockgen -destination ../../mocks/mock_postgres.go -package mocks github.com/saufiroja/cqrs/pkg/database IPostgres
 package database
 
 import (
@@ -9,11 +10,18 @@ import (
 	"github.com/saufiroja/cqrs/pkg/logger"
 )
 
+type IPostgres interface {
+	Db() *sql.DB
+	StartTransaction() (*sql.Tx, error)
+	CommitTransaction(tx *sql.Tx)
+	RollbackTransaction(tx *sql.Tx)
+}
+
 type Postgres struct {
 	*sql.DB
 }
 
-func NewPostgres(conf *config.AppConfig, log *logger.Logger) *Postgres {
+func NewPostgres(conf *config.AppConfig, log *logger.Logger) IPostgres {
 	host := conf.Postgres.Host
 	port := conf.Postgres.Port
 	user := conf.Postgres.User
@@ -49,7 +57,7 @@ func NewPostgres(conf *config.AppConfig, log *logger.Logger) *Postgres {
 	return &Postgres{db}
 }
 
-func (p *Postgres) StartDatabase() *sql.DB {
+func (p *Postgres) Db() *sql.DB {
 	return p.DB
 }
 

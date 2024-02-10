@@ -1,3 +1,4 @@
+//go:generate mockgen -destination ../../mocks/mock_jaeger.go -package mocks github.com/saufiroja/cqrs/pkg/tracing ITracing
 package tracing
 
 import (
@@ -10,10 +11,14 @@ import (
 	jeagerCfg "github.com/uber/jaeger-client-go/config"
 )
 
+type ITracing interface {
+	StartSpan(ctx context.Context, operationName string, opts ...opentracing.StartSpanOption) (opentracing.Span, context.Context)
+}
+
 type Tracing struct {
 }
 
-func NewTracing(conf *config.AppConfig, log *logger.Logger) *Tracing {
+func NewTracing(conf *config.AppConfig, log *logger.Logger) ITracing {
 	cfg := jeagerCfg.Configuration{
 		ServiceName: conf.App.ServiceName,
 		Sampler: &jeagerCfg.SamplerConfig{
@@ -25,10 +30,11 @@ func NewTracing(conf *config.AppConfig, log *logger.Logger) *Tracing {
 		},
 	}
 
-	tracer, _, err := cfg.NewTracer(
+	tracer, closer, err := cfg.NewTracer(
 		jeagerCfg.Logger(jaeger.StdLogger),
 		jeagerCfg.ZipkinSharedRPCSpan(true),
 	)
+	defer closer.Close()
 	if err != nil {
 		log.StartLogger("jaeger.go", "NewTracing").Error("error connecting to jaeger")
 		panic(err)

@@ -34,7 +34,6 @@ func (m *Module) StartModule(conf *config.AppConfig, reg *prometheus.Registry) {
 	// database
 	redisCli := redis.NewRedis(conf, log)
 	db := database.NewPostgres(conf, log)
-	db.StartDatabase()
 
 	// application
 	todoRepository := repositories.NewRepository(trace)

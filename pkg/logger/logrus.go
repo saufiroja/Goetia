@@ -1,3 +1,4 @@
+//go:generate mockgen -destination ../../mocks/mock_logger.go -package mocks github.com/saufiroja/cqrs/pkg/logger ILogger
 package logger
 
 import (
@@ -6,6 +7,10 @@ import (
 	"log"
 	"os"
 )
+
+type ILogger interface {
+	StartLogger(fileName string, nameFunc string) *logrus.Entry
+}
 
 type Logger struct {
 	*logrus.Logger
