@@ -127,7 +127,7 @@ func (s *service) GetAllTodo(ctx context.Context) ([]responses.GetAllTodoRespons
 	return todos, nil
 }
 
-func (s *service) GetTodoById(ctx context.Context, todoId string) (responses.GetTodoByIdResponse, error) {
+func (s *service) GetTodoById(ctx context.Context, todoId string) (*responses.GetTodoByIdResponse, error) {
 	tracer, ctx := s.tracing.StartSpan(ctx, "Service.GetTodoById")
 	defer tracer.Finish()
 
@@ -137,14 +137,14 @@ func (s *service) GetTodoById(ctx context.Context, todoId string) (responses.Get
 		if err != nil {
 			errMsg := fmt.Sprintf("error getting todos by id: %s", todoId)
 			s.log.StartLogger("todo_service.go", "GetTodoById").Error(errMsg)
-			return todo, err
+			return nil, err
 		}
 
 		// marshal todos
 		jsonData, err := json.Marshal(todo)
 		if err != nil {
 			s.log.StartLogger("todo_service.go", "GetTodoById").Error("error marshal todos")
-			return todo, err
+			return nil, err
 		}
 
 		// set data to redis
@@ -152,7 +152,7 @@ func (s *service) GetTodoById(ctx context.Context, todoId string) (responses.Get
 		if err != nil {
 			errMsg := fmt.Sprintf("error setting todos to redis: %v", err)
 			s.log.StartLogger("todo_service.go", "GetTodoById").Error(errMsg)
-			return todo, err
+			return nil, err
 		}
 
 		res := fmt.Sprintf("success getting todos by id: %s", todoId)
@@ -165,13 +165,13 @@ func (s *service) GetTodoById(ctx context.Context, todoId string) (responses.Get
 	err = json.Unmarshal([]byte(data), &todo)
 	if err != nil {
 		s.log.StartLogger("todo_service.go", "GetTodoById").Error("error unmarshal todos")
-		return todo, err
+		return nil, err
 	}
 
 	res := fmt.Sprintf("success getting todos by id: %s", todoId)
 	s.log.StartLogger("todo_service.go", "GetTodoById").Info(res)
 
-	return todo, nil
+	return &todo, nil
 }
 
 func (s *service) UpdateTodoById(ctx context.Context, request *grpc.UpdateTodoRequest) error {

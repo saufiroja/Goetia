@@ -72,10 +72,10 @@ func (mr *MockITodoRepositoryMockRecorder) GetAllTodos(arg0, arg1 any) *gomock.C
 }
 
 // GetTodoById mocks base method.
-func (m *MockITodoRepository) GetTodoById(arg0 context.Context, arg1 *sql.DB, arg2 string) (responses.GetTodoByIdResponse, error) {
+func (m *MockITodoRepository) GetTodoById(arg0 context.Context, arg1 *sql.DB, arg2 string) (*responses.GetTodoByIdResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTodoById", arg0, arg1, arg2)
-	ret0, _ := ret[0].(responses.GetTodoByIdResponse)
+	ret0, _ := ret[0].(*responses.GetTodoByIdResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

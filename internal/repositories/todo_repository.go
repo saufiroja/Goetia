@@ -55,7 +55,7 @@ func (r *repository) GetAllTodos(ctx context.Context, db *sql.DB) ([]responses.G
 	return todos, nil
 }
 
-func (r *repository) GetTodoById(ctx context.Context, db *sql.DB, todoId string) (responses.GetTodoByIdResponse, error) {
+func (r *repository) GetTodoById(ctx context.Context, db *sql.DB, todoId string) (*responses.GetTodoByIdResponse, error) {
 	tracer, ctx := r.tracing.StartSpan(ctx, "Repository.GetTodoById")
 	defer tracer.Finish()
 
@@ -65,10 +65,10 @@ func (r *repository) GetTodoById(ctx context.Context, db *sql.DB, todoId string)
 	var todo responses.GetTodoByIdResponse
 	err := row.Scan(&todo.TodoId, &todo.Title, &todo.Description, &todo.Completed, &todo.CreatedAt, &todo.UpdatedAt)
 	if err != nil {
-		return todo, err
+		return nil, err
 	}
 
-	return todo, nil
+	return &todo, nil
 }
 
 func (r *repository) UpdateTodoById(ctx context.Context, tx *sql.Tx, todo *requests.UpdateTodoRequest) error {
