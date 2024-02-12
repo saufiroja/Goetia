@@ -25,7 +25,7 @@ jobs:
         run: go mod download
       -
         name: Unit tests
-        run: go test -v ./test/todos/unit_test
+        run: go test -v ./test/unit_test/todos
 
       -
         name: Login to Docker Hub (optional)
