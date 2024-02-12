@@ -59,6 +59,12 @@ password: admin
 http://localhost:3000
 ```
 
+4. Run unit test
+
+```bash
+make unit-test
+```
+
 ### Endpoints
 | METHOD |        Endpoint         |       Description        |
 |:------:|:-----------------------:|:------------------------:|
@@ -86,8 +92,8 @@ http://localhost:3000
 - ✅ Logrus - Logging 
 - ✅ Loki - Log aggregation
 - ✅ CI/CD - Continuous integration and delivery
+- ✅ Unit Testing - Testing (on progress)
 - [ ] Kubernetes - Container orchestration (on research)
-- [ ] Unit Testing - Testing (on progress)
 - [ ] Integration Testing - Testing
 - [ ] End to End Testing - Testing
 
