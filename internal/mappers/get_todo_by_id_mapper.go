@@ -5,7 +5,7 @@ import (
 	"github.com/saufiroja/cqrs/internal/grpc"
 )
 
-func NewGetTodoByIdResponse(todo responses.GetTodoByIdResponse) *grpc.GetTodoResponse {
+func NewGetTodoByIdResponse(todo *responses.GetTodoByIdResponse) *grpc.GetTodoResponse {
 	return &grpc.GetTodoResponse{
 		TodoId:    todo.TodoId,
 		Title:     todo.Title,
