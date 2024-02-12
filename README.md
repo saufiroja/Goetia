@@ -92,7 +92,7 @@ make unit-test
 - ✅ Logrus - Logging 
 - ✅ Loki - Log aggregation
 - ✅ CI/CD - Continuous integration and delivery
-- ✅ Unit Testing - Testing (on progress)
+- ✅ Unit Testing - Testing
 - [ ] Kubernetes - Container orchestration (on research)
 - [ ] Integration Testing - Testing
 - [ ] End to End Testing - Testing
