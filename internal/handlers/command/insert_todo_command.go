@@ -11,13 +11,17 @@ import (
 	"net/http"
 )
 
+type IInsertTodoCommand interface {
+	Handle(ctx context.Context, request *grpc.TodoRequest) (*grpc.Empty, error)
+}
+
 type InsertTodoCommand struct {
 	todoService services.ITodoService
 	validation  *validator.Validation
 	tracing     tracing.ITracing
 }
 
-func NewInsertTodoCommand(todoService services.ITodoService, validation *validator.Validation, tracing tracing.ITracing) *InsertTodoCommand {
+func NewInsertTodoCommand(todoService services.ITodoService, validation *validator.Validation, tracing tracing.ITracing) IInsertTodoCommand {
 	return &InsertTodoCommand{
 		todoService: todoService,
 		validation:  validation,

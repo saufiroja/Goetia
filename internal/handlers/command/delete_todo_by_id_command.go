@@ -10,12 +10,16 @@ import (
 	"net/http"
 )
 
+type IDeleteTodoByIdCommand interface {
+	Handle(ctx context.Context, params *grpc.TodoParams) (*grpc.Empty, error)
+}
+
 type DeleteTodoByIdCommand struct {
 	todoService services.ITodoService
 	tracing     tracing.ITracing
 }
 
-func NewDeleteTodoByIdCommand(todoService services.ITodoService, tracing tracing.ITracing) *DeleteTodoByIdCommand {
+func NewDeleteTodoByIdCommand(todoService services.ITodoService, tracing tracing.ITracing) IDeleteTodoByIdCommand {
 	return &DeleteTodoByIdCommand{
 		todoService: todoService,
 		tracing:     tracing,

@@ -1,13 +1,13 @@
 package query
 
 type TodoQuery struct {
-	GetAllTodoQuery  *GetAllTodoQuery
-	GetTodoByIdQuery *GetTodoByIdQuery
+	GetAllTodoQuery  IGetAllTodoQuery
+	GetTodoByIdQuery IGetTodoByIdQuery
 }
 
 func NewTodoQuery(
-	getAllTodoQuery *GetAllTodoQuery,
-	GetTodoByIdQuery *GetTodoByIdQuery,
+	getAllTodoQuery IGetAllTodoQuery,
+	GetTodoByIdQuery IGetTodoByIdQuery,
 ) *TodoQuery {
 	return &TodoQuery{
 		GetAllTodoQuery:  getAllTodoQuery,

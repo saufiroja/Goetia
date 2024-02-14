@@ -1,17 +1,17 @@
 package command
 
 type TodoCommand struct {
-	InsertTodoCommand           *InsertTodoCommand
-	UpdateTodoCommand           *UpdateTodoCommand
-	UpdateStatusTodoByIdCommand *UpdateStatusTodoByIdCommand
-	DeleteTodoByIdCommand       *DeleteTodoByIdCommand
+	InsertTodoCommand           IInsertTodoCommand
+	UpdateTodoCommand           IUpdateTodoCommand
+	UpdateStatusTodoByIdCommand IUpdateStatusTodoByIdCommand
+	DeleteTodoByIdCommand       IDeleteTodoByIdCommand
 }
 
 func NewTodoCommand(
-	insertTodoCommand *InsertTodoCommand,
-	updateTodoCommand *UpdateTodoCommand,
-	updateStatusTodoByIdCommand *UpdateStatusTodoByIdCommand,
-	deleteTodoByIdCommand *DeleteTodoByIdCommand,
+	insertTodoCommand IInsertTodoCommand,
+	updateTodoCommand IUpdateTodoCommand,
+	updateStatusTodoByIdCommand IUpdateStatusTodoByIdCommand,
+	deleteTodoByIdCommand IDeleteTodoByIdCommand,
 ) *TodoCommand {
 	return &TodoCommand{
 		InsertTodoCommand:           insertTodoCommand,

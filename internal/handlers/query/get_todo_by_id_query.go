@@ -10,12 +10,16 @@ import (
 	"net/http"
 )
 
+type IGetTodoByIdQuery interface {
+	Handle(ctx context.Context, params *grpc.TodoParams) (*grpc.GetTodoResponse, error)
+}
+
 type GetTodoByIdQuery struct {
 	todoService services.ITodoService
 	tracing     tracing.ITracing
 }
 
-func NewGetTodoByIdQuery(todoService services.ITodoService, tracing tracing.ITracing) *GetTodoByIdQuery {
+func NewGetTodoByIdQuery(todoService services.ITodoService, tracing tracing.ITracing) IGetTodoByIdQuery {
 	return &GetTodoByIdQuery{
 		todoService: todoService,
 		tracing:     tracing,

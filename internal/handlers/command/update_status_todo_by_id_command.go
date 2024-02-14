@@ -10,12 +10,16 @@ import (
 	"net/http"
 )
 
+type IUpdateStatusTodoByIdCommand interface {
+	Handle(ctx context.Context, request *grpc.UpdateTodoStatusRequest) (*grpc.Empty, error)
+}
+
 type UpdateStatusTodoByIdCommand struct {
 	todoService services.ITodoService
 	tracing     tracing.ITracing
 }
 
-func NewUpdateStatusTodoByIdCommand(todoService services.ITodoService, tracing tracing.ITracing) *UpdateStatusTodoByIdCommand {
+func NewUpdateStatusTodoByIdCommand(todoService services.ITodoService, tracing tracing.ITracing) IUpdateStatusTodoByIdCommand {
 	return &UpdateStatusTodoByIdCommand{
 		todoService: todoService,
 		tracing:     tracing,

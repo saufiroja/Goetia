@@ -10,12 +10,16 @@ import (
 	"net/http"
 )
 
+type IGetAllTodoQuery interface {
+	Handle(ctx context.Context) (*grpc.TodoResponse, error)
+}
+
 type GetAllTodoQuery struct {
 	todoService services.ITodoService
 	tracing     tracing.ITracing
 }
 
-func NewGetAllTodoQuery(todoService services.ITodoService, tracing tracing.ITracing) *GetAllTodoQuery {
+func NewGetAllTodoQuery(todoService services.ITodoService, tracing tracing.ITracing) IGetAllTodoQuery {
 	return &GetAllTodoQuery{
 		todoService: todoService,
 		tracing:     tracing,
