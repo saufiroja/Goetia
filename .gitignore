@@ -17,3 +17,5 @@ bin
 
 # environment configuration
 .env
+
+.idx
