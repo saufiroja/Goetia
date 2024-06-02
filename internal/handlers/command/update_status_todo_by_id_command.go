@@ -2,12 +2,10 @@ package command
 
 import (
 	"context"
-	"fmt"
+
 	"github.com/saufiroja/cqrs/internal/grpc"
-	"github.com/saufiroja/cqrs/internal/mappers"
 	"github.com/saufiroja/cqrs/internal/services"
 	"github.com/saufiroja/cqrs/pkg/tracing"
-	"net/http"
 )
 
 type IUpdateStatusTodoByIdCommand interface {
@@ -32,8 +30,7 @@ func (t *UpdateStatusTodoByIdCommand) Handle(ctx context.Context, request *grpc.
 
 	err := t.todoService.UpdateTodoStatusById(ctx, request)
 	if err != nil {
-		errMsg := fmt.Sprintf("failed to update todos, err: %s", err.Error())
-		return nil, mappers.NewResponseMapper(http.StatusInternalServerError, errMsg, nil)
+		return nil, err
 	}
 
 	return &grpc.Empty{}, nil

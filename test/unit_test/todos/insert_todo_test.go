@@ -3,24 +3,25 @@ package todos_test
 import (
 	"context"
 	"database/sql"
+	"testing"
+	"time"
+
 	"github.com/opentracing/opentracing-go/mocktracer"
-	"github.com/saufiroja/cqrs/internal/grpc"
+	"github.com/saufiroja/cqrs/internal/contracts/requests"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
-	"testing"
-	"time"
 )
 
 func TestInsertTodo(t *testing.T) {
 	t.Run("[Positive] success insert todo", func(t *testing.T) {
-		request := &grpc.TodoRequest{
+		request := &requests.TodoRequest{
 			TodoId:      "1",
 			Title:       "test",
 			Description: "test",
 			Completed:   false,
-			CreatedAt:   time.Now().Unix(),
-			UpdatedAt:   time.Now().Unix(),
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
 		}
 
 		init := setupTest(t)
@@ -45,13 +46,13 @@ func TestInsertTodo(t *testing.T) {
 	})
 
 	t.Run("[Negative] failed start transaction", func(t *testing.T) {
-		request := &grpc.TodoRequest{
+		request := &requests.TodoRequest{
 			TodoId:      "1",
 			Title:       "test",
 			Description: "test",
 			Completed:   false,
-			CreatedAt:   time.Now().Unix(),
-			UpdatedAt:   time.Now().Unix(),
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
 		}
 
 		init := setupTest(t)
@@ -69,13 +70,13 @@ func TestInsertTodo(t *testing.T) {
 	})
 
 	t.Run("[Negative] failed insert todo", func(t *testing.T) {
-		request := &grpc.TodoRequest{
+		request := &requests.TodoRequest{
 			TodoId:      "1",
 			Title:       "test",
 			Description: "test",
 			Completed:   false,
-			CreatedAt:   time.Now().Unix(),
-			UpdatedAt:   time.Now().Unix(),
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
 		}
 
 		init := setupTest(t)
@@ -98,13 +99,13 @@ func TestInsertTodo(t *testing.T) {
 	})
 
 	t.Run("[Negative] failed delete cache", func(t *testing.T) {
-		request := &grpc.TodoRequest{
+		request := &requests.TodoRequest{
 			TodoId:      "1",
 			Title:       "test",
 			Description: "test",
 			Completed:   false,
-			CreatedAt:   time.Now().Unix(),
-			UpdatedAt:   time.Now().Unix(),
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
 		}
 
 		init := setupTest(t)

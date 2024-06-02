@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
 	_ "github.com/lib/pq"
 	"github.com/saufiroja/cqrs/config"
 	"github.com/saufiroja/cqrs/pkg/logger"
@@ -62,7 +63,7 @@ func (p *Postgres) Db() *sql.DB {
 }
 
 func (p *Postgres) StartTransaction() (*sql.Tx, error) {
-	return p.Begin()
+	return p.BeginTx(context.Background(), nil)
 }
 
 func (p *Postgres) CommitTransaction(tx *sql.Tx) {

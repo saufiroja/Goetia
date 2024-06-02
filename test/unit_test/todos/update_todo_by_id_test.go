@@ -2,25 +2,24 @@ package todos_test
 
 import (
 	"database/sql"
+	"testing"
+	"time"
+
 	"github.com/opentracing/opentracing-go/mocktracer"
 	"github.com/saufiroja/cqrs/internal/contracts/requests"
-	"github.com/saufiroja/cqrs/internal/grpc"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
-	"testing"
-	"time"
 )
 
 func TestUpdateTodoByID(t *testing.T) {
 	t.Run("[Positive] success update todo by ID", func(t *testing.T) {
-		now := time.Now()
 		mockData := &requests.UpdateTodoRequest{
 			TodoId:      "1",
 			Title:       "test",
 			Description: "test",
 			Completed:   false,
-			UpdatedAt:   time.Unix(now.Unix(), 0),
+			UpdatedAt:   time.Now(),
 		}
 
 		init := setupTest(t)
@@ -45,12 +44,12 @@ func TestUpdateTodoByID(t *testing.T) {
 		init.mockRedisCli.EXPECT().Del("todos").Return(nil)
 		init.mockRedisCli.EXPECT().Del("todoById").Return(nil)
 
-		request := &grpc.UpdateTodoRequest{
+		request := &requests.UpdateTodoRequest{
 			TodoId:      mockData.TodoId,
 			Title:       mockData.Title,
 			Description: mockData.Description,
 			Completed:   mockData.Completed,
-			UpdatedAt:   mockData.UpdatedAt.Unix(),
+			UpdatedAt:   mockData.UpdatedAt,
 		}
 
 		err := init.service.UpdateTodoById(init.ctx, request)
@@ -83,12 +82,12 @@ func TestUpdateTodoByID(t *testing.T) {
 
 		init.mockTodoRepo.EXPECT().GetTodoById(gomock.Any(), db, mockData.TodoId).Return(nil, nil)
 
-		request := &grpc.UpdateTodoRequest{
+		request := &requests.UpdateTodoRequest{
 			TodoId:      mockData.TodoId,
 			Title:       mockData.Title,
 			Description: mockData.Description,
 			Completed:   mockData.Completed,
-			UpdatedAt:   mockData.UpdatedAt.Unix(),
+			UpdatedAt:   mockData.UpdatedAt,
 		}
 
 		err := init.service.UpdateTodoById(init.ctx, request)
@@ -120,12 +119,12 @@ func TestUpdateTodoByID(t *testing.T) {
 
 		init.mockTodoRepo.EXPECT().GetTodoById(gomock.Any(), db, mockData.TodoId).Return(nil, assert.AnError)
 
-		request := &grpc.UpdateTodoRequest{
+		request := &requests.UpdateTodoRequest{
 			TodoId:      mockData.TodoId,
 			Title:       mockData.Title,
 			Description: mockData.Description,
 			Completed:   mockData.Completed,
-			UpdatedAt:   mockData.UpdatedAt.Unix(),
+			UpdatedAt:   mockData.UpdatedAt,
 		}
 
 		err := init.service.UpdateTodoById(init.ctx, request)
@@ -161,12 +160,12 @@ func TestUpdateTodoByID(t *testing.T) {
 		init.mockTodoRepo.EXPECT().GetTodoById(gomock.Any(), db, mockData.TodoId).Return(nil, nil)
 		init.mockTodoRepo.EXPECT().UpdateTodoById(init.ctx, mockTx, mockData).Return(assert.AnError)
 
-		request := &grpc.UpdateTodoRequest{
+		request := &requests.UpdateTodoRequest{
 			TodoId:      mockData.TodoId,
 			Title:       mockData.Title,
 			Description: mockData.Description,
 			Completed:   mockData.Completed,
-			UpdatedAt:   mockData.UpdatedAt.Unix(),
+			UpdatedAt:   mockData.UpdatedAt,
 		}
 
 		err := init.service.UpdateTodoById(init.ctx, request)
@@ -204,12 +203,12 @@ func TestUpdateTodoByID(t *testing.T) {
 
 		init.mockRedisCli.EXPECT().Del("todos").Return(assert.AnError)
 
-		request := &grpc.UpdateTodoRequest{
+		request := &requests.UpdateTodoRequest{
 			TodoId:      mockData.TodoId,
 			Title:       mockData.Title,
 			Description: mockData.Description,
 			Completed:   mockData.Completed,
-			UpdatedAt:   mockData.UpdatedAt.Unix(),
+			UpdatedAt:   mockData.UpdatedAt,
 		}
 
 		err := init.service.UpdateTodoById(init.ctx, request)
@@ -248,12 +247,12 @@ func TestUpdateTodoByID(t *testing.T) {
 		init.mockRedisCli.EXPECT().Del("todos").Return(nil)
 		init.mockRedisCli.EXPECT().Del("todoById").Return(assert.AnError)
 
-		request := &grpc.UpdateTodoRequest{
+		request := &requests.UpdateTodoRequest{
 			TodoId:      mockData.TodoId,
 			Title:       mockData.Title,
 			Description: mockData.Description,
 			Completed:   mockData.Completed,
-			UpdatedAt:   mockData.UpdatedAt.Unix(),
+			UpdatedAt:   mockData.UpdatedAt,
 		}
 
 		err := init.service.UpdateTodoById(init.ctx, request)

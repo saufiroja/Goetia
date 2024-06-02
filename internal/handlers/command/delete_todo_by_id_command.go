@@ -2,12 +2,10 @@ package command
 
 import (
 	"context"
-	"fmt"
+
 	"github.com/saufiroja/cqrs/internal/grpc"
-	"github.com/saufiroja/cqrs/internal/mappers"
 	"github.com/saufiroja/cqrs/internal/services"
 	"github.com/saufiroja/cqrs/pkg/tracing"
-	"net/http"
 )
 
 type IDeleteTodoByIdCommand interface {
@@ -32,8 +30,7 @@ func (t *DeleteTodoByIdCommand) Handle(ctx context.Context, params *grpc.TodoPar
 
 	err := t.todoService.DeleteTodoById(ctx, params.TodoId)
 	if err != nil {
-		errMsg := fmt.Sprintf("failed to delete todos, err: %s", err.Error())
-		return nil, mappers.NewResponseMapper(http.StatusInternalServerError, errMsg, nil)
+		return nil, err
 	}
 
 	return &grpc.Empty{}, nil

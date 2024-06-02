@@ -2,12 +2,11 @@ package query
 
 import (
 	"context"
-	"fmt"
+
 	"github.com/saufiroja/cqrs/internal/grpc"
 	"github.com/saufiroja/cqrs/internal/mappers"
 	"github.com/saufiroja/cqrs/internal/services"
 	"github.com/saufiroja/cqrs/pkg/tracing"
-	"net/http"
 )
 
 type IGetAllTodoQuery interface {
@@ -32,8 +31,7 @@ func (t *GetAllTodoQuery) Handle(ctx context.Context) (*grpc.TodoResponse, error
 
 	todos, err := t.todoService.GetAllTodo(ctx)
 	if err != nil {
-		errMsg := fmt.Sprintf("failed to get all todos, err: %s", err.Error())
-		return nil, mappers.NewResponseMapper(http.StatusOK, errMsg, nil)
+		return nil, err
 	}
 
 	data := mappers.NewGetAllTodoResponse(todos)

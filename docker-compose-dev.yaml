@@ -6,13 +6,13 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
-      - "50051:50051"
+      - '8080:8080'
+      - '50051:50051'
     env_file:
       - .env
     depends_on:
-        - postgres
-        - redis
+      - postgres
+      - redis
     networks:
       - todos
     restart: on-failure
@@ -25,37 +25,37 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_HOST_AUTH_METHOD: trust
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./database/migrations:/docker-entrypoint-initdb.d/
     networks:
-        - todos
+      - todos
 
   redis:
-      image: redis:latest
-      ports:
-          - "6379:6379"
-      volumes:
-        - redis:/data
-        - redis-config:/usr/local/etc/redis/redis.conf
-      command:
-        - redis-server
-      networks:
-          - todos
+    image: redis:latest
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis:/data
+      - redis-config:/usr/local/etc/redis/redis.conf
+    command:
+      - redis-server
+    networks:
+      - todos
 
   redis-commander:
-      image: rediscommander/redis-commander:latest
-      ports:
-          - '8081:8081'
-      environment:
-          - REDIS_HOSTS=local:redis:6379
-          - HTTP_USER=root
-          - HTTP_PASSWORD=root
-      depends_on:
-        - redis
-      networks:
-          - todos
+    image: rediscommander/redis-commander:latest
+    ports:
+      - '8081:8081'
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+      - HTTP_USER=root
+      - HTTP_PASSWORD=root
+    depends_on:
+      - redis
+    networks:
+      - todos
 
   prometheus:
     image: prom/prometheus:v2.40.4
@@ -63,8 +63,12 @@ services:
       - '9090:9090'
     volumes:
       - ./provisioning/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--enable-feature=remote-write-receiver'
+      - '--enable-feature=native-histograms'
+      - '--config.file=/etc/prometheus/prometheus.yml'
     networks:
-        - todos
+      - todos
 
   grafana:
     image: grafana/grafana:9.3.0
@@ -77,8 +81,8 @@ services:
     networks:
       - todos
     volumes:
-        - grafana-data:/var/lib/grafana
-        - ./provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+      - ./provisioning:/etc/grafana/provisioning
 
   jaeger:
     container_name: jaeger_container
@@ -95,7 +99,7 @@ services:
       - '14250:14250'
       - '9411:9411'
     networks:
-        - todos
+      - todos
 
   loki:
     image: grafana/loki:latest
@@ -103,10 +107,10 @@ services:
       - '3100:3100'
     command: -config.file=/etc/loki/local-config.yaml
     networks:
-        - todos
+      - todos
 
   promtail:
-    image:  grafana/promtail:latest
+    image: grafana/promtail:latest
     container_name: promtail
     volumes:
       - ./provisioning/promtail/promtail-config.yaml:/etc/promtail/docker-config.yaml
@@ -119,10 +123,10 @@ services:
       - todos
 
 volumes:
-    postgres-data:
-    redis:
-    redis-config:
-    grafana-data:
+  postgres-data:
+  redis:
+  redis-config:
+  grafana-data:
 networks:
-    todos:
-        driver: bridge
+  todos:
+    driver: bridge

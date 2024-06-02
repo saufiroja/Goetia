@@ -2,12 +2,11 @@ package query
 
 import (
 	"context"
-	"fmt"
+
 	"github.com/saufiroja/cqrs/internal/grpc"
 	"github.com/saufiroja/cqrs/internal/mappers"
 	"github.com/saufiroja/cqrs/internal/services"
 	"github.com/saufiroja/cqrs/pkg/tracing"
-	"net/http"
 )
 
 type IGetTodoByIdQuery interface {
@@ -32,8 +31,7 @@ func (t *GetTodoByIdQuery) Handle(ctx context.Context, params *grpc.TodoParams) 
 
 	todo, err := t.todoService.GetTodoById(ctx, params.TodoId)
 	if err != nil {
-		errMsg := fmt.Sprintf("todos not found")
-		return nil, mappers.NewResponseMapper(http.StatusNotFound, errMsg, nil)
+		return nil, err
 	}
 
 	data := mappers.NewGetTodoByIdResponse(todo)

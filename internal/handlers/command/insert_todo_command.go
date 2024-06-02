@@ -3,12 +3,17 @@ package command
 import (
 	"context"
 	"fmt"
+	"time"
+
+	"github.com/oklog/ulid/v2"
+	"github.com/saufiroja/cqrs/internal/contracts/requests"
 	"github.com/saufiroja/cqrs/internal/grpc"
-	"github.com/saufiroja/cqrs/internal/mappers"
 	"github.com/saufiroja/cqrs/internal/services"
+	"github.com/saufiroja/cqrs/pkg/logger"
 	"github.com/saufiroja/cqrs/pkg/tracing"
 	"github.com/saufiroja/cqrs/pkg/validator"
-	"net/http"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type IInsertTodoCommand interface {
@@ -19,13 +24,17 @@ type InsertTodoCommand struct {
 	todoService services.ITodoService
 	validation  *validator.Validation
 	tracing     tracing.ITracing
+	log         logger.ILogger
 }
 
-func NewInsertTodoCommand(todoService services.ITodoService, validation *validator.Validation, tracing tracing.ITracing) IInsertTodoCommand {
+func NewInsertTodoCommand(todoService services.ITodoService, validation *validator.Validation,
+	tracing tracing.ITracing,
+	log logger.ILogger) IInsertTodoCommand {
 	return &InsertTodoCommand{
 		todoService: todoService,
 		validation:  validation,
 		tracing:     tracing,
+		log:         log,
 	}
 }
 
@@ -33,16 +42,25 @@ func (t *InsertTodoCommand) Handle(ctx context.Context, request *grpc.TodoReques
 	tracer, ctx := t.tracing.StartSpan(ctx, "InsertTodoCommand.Handle")
 	defer tracer.Finish()
 
-	err := t.validation.Validate(request)
-	if err != nil {
-		errMsg := fmt.Sprintf("failed to validate request, err: %s", t.validation.CustomError(err))
-		return nil, mappers.NewResponseMapper(http.StatusBadRequest, errMsg, nil)
+	input := &requests.TodoRequest{
+		TodoId:      ulid.Make().String(),
+		Title:       request.Title,
+		Description: request.Description,
+		Completed:   request.Completed,
+		CreatedAt:   time.Unix(request.CreatedAt, 0),
+		UpdatedAt:   time.Unix(request.UpdatedAt, 0),
 	}
 
-	err = t.todoService.InsertTodo(ctx, request)
+	err := t.validation.Validate(input)
 	if err != nil {
-		errMsg := fmt.Sprintf("failed to insert todos, err: %s", err.Error())
-		return nil, mappers.NewResponseMapper(http.StatusInternalServerError, errMsg, nil)
+		t.log.StartLogger("InsertTodoCommand", "Handle").Error(err.Error())
+		errMsg := fmt.Sprintf("failed to validate request, err: %s", t.validation.CustomError(err))
+		return nil, status.Error(codes.InvalidArgument, errMsg)
+	}
+
+	err = t.todoService.InsertTodo(ctx, input)
+	if err != nil {
+		return nil, err
 	}
 
 	return &grpc.Empty{}, nil

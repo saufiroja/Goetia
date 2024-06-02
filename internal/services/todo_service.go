@@ -5,7 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/oklog/ulid/v2"
+	"time"
+
 	"github.com/redis/go-redis/v9"
 	"github.com/saufiroja/cqrs/internal/contracts/requests"
 	"github.com/saufiroja/cqrs/internal/contracts/responses"
@@ -15,7 +16,8 @@ import (
 	"github.com/saufiroja/cqrs/pkg/logger"
 	redisCli "github.com/saufiroja/cqrs/pkg/redis"
 	"github.com/saufiroja/cqrs/pkg/tracing"
-	"time"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type service struct {
@@ -42,18 +44,9 @@ func NewService(
 	}
 }
 
-func (s *service) InsertTodo(ctx context.Context, request *grpc.TodoRequest) error {
+func (s *service) InsertTodo(ctx context.Context, request *requests.TodoRequest) error {
 	tracer, ctx := s.tracing.StartSpan(ctx, "Service.InsertTodo")
 	defer tracer.Finish()
-
-	input := &requests.TodoRequest{
-		TodoId:      ulid.Make().String(),
-		Title:       request.Title,
-		Description: request.Description,
-		Completed:   request.Completed,
-		CreatedAt:   time.Unix(request.CreatedAt, 0),
-		UpdatedAt:   time.Unix(request.UpdatedAt, 0),
-	}
 
 	tx, err := s.db.StartTransaction()
 	if err != nil {
@@ -61,7 +54,7 @@ func (s *service) InsertTodo(ctx context.Context, request *grpc.TodoRequest) err
 		return err
 	}
 
-	err = s.todoRepository.InsertTodo(ctx, tx, input)
+	err = s.todoRepository.InsertTodo(ctx, tx, request)
 	if err != nil {
 		s.log.StartLogger("todo_service.go", "InsertTodo").Error("error inserting todos")
 		s.db.RollbackTransaction(tx)
@@ -137,7 +130,7 @@ func (s *service) GetTodoById(ctx context.Context, todoId string) (*responses.Ge
 		if err != nil {
 			errMsg := fmt.Sprintf("error getting todos by id: %s", todoId)
 			s.log.StartLogger("todo_service.go", "GetTodoById").Error(errMsg)
-			return nil, err
+			return nil, status.Error(codes.NotFound, err.Error())
 		}
 
 		// marshal todos
@@ -174,23 +167,15 @@ func (s *service) GetTodoById(ctx context.Context, todoId string) (*responses.Ge
 	return &todo, nil
 }
 
-func (s *service) UpdateTodoById(ctx context.Context, request *grpc.UpdateTodoRequest) error {
+func (s *service) UpdateTodoById(ctx context.Context, request *requests.UpdateTodoRequest) error {
 	tracer, ctx := s.tracing.StartSpan(ctx, "Service.UpdateTodoById")
 	defer tracer.Finish()
 
-	input := &requests.UpdateTodoRequest{
-		TodoId:      request.TodoId,
-		Title:       request.Title,
-		Description: request.Description,
-		Completed:   request.Completed,
-		UpdatedAt:   time.Unix(request.UpdatedAt, 0),
-	}
-
-	_, err := s.todoRepository.GetTodoById(ctx, s.db.Db(), input.TodoId)
+	_, err := s.todoRepository.GetTodoById(ctx, s.db.Db(), request.TodoId)
 	if err != nil {
-		errMsg := fmt.Sprintf("error getting todos by id: %s", input.TodoId)
+		errMsg := fmt.Sprintf("error getting todos by id: %s", request.TodoId)
 		s.log.StartLogger("todo_service.go", "UpdateTodoById").Error(errMsg)
-		return err
+		return status.Error(codes.NotFound, err.Error())
 	}
 
 	tx, err := s.db.StartTransaction()
@@ -199,12 +184,12 @@ func (s *service) UpdateTodoById(ctx context.Context, request *grpc.UpdateTodoRe
 		return err
 	}
 
-	err = s.todoRepository.UpdateTodoById(ctx, tx, input)
+	err = s.todoRepository.UpdateTodoById(ctx, tx, request)
 	if err != nil {
-		errMsg := fmt.Sprintf("error updating todos by id: %s", input.TodoId)
+		errMsg := fmt.Sprintf("error updating todos by id: %s", request.TodoId)
 		s.log.StartLogger("todo_service.go", "UpdateTodoById").Error(errMsg)
 		s.db.RollbackTransaction(tx)
-		return err
+		return status.Error(codes.Internal, err.Error())
 	}
 
 	s.db.CommitTransaction(tx)
@@ -224,7 +209,7 @@ func (s *service) UpdateTodoById(ctx context.Context, request *grpc.UpdateTodoRe
 		return err
 	}
 
-	res := fmt.Sprintf("success updating todos by id: %s", input.TodoId)
+	res := fmt.Sprintf("success updating todos by id: %s", request.TodoId)
 	s.log.StartLogger("todo_service.go", "UpdateTodoById").Info(res)
 
 	return nil
@@ -244,7 +229,7 @@ func (s *service) UpdateTodoStatusById(ctx context.Context, request *grpc.Update
 	if err != nil {
 		errMsg := fmt.Sprintf("error getting todos by id: %s", input.TodoId)
 		s.log.StartLogger("todo_service.go", "UpdateTodoStatusById").Error(errMsg)
-		return err
+		return status.Error(codes.NotFound, err.Error())
 	}
 
 	if todo.Completed {
@@ -264,7 +249,7 @@ func (s *service) UpdateTodoStatusById(ctx context.Context, request *grpc.Update
 		errMsg := fmt.Sprintf("error updating todos status by id: %s", input.TodoId)
 		s.log.StartLogger("todo_service.go", "UpdateTodoStatusById").Error(errMsg)
 		s.db.RollbackTransaction(tx)
-		return err
+		return status.Error(codes.Internal, err.Error())
 	}
 
 	s.db.CommitTransaction(tx)
@@ -298,7 +283,7 @@ func (s *service) DeleteTodoById(ctx context.Context, todoId string) error {
 	if err != nil {
 		errMsg := fmt.Sprintf("error getting todos by id: %s", todoId)
 		s.log.StartLogger("todo_service.go", "DeleteTodoById").Error(errMsg)
-		return err
+		return status.Error(codes.NotFound, err.Error())
 	}
 
 	tx, err := s.db.StartTransaction()
@@ -312,7 +297,7 @@ func (s *service) DeleteTodoById(ctx context.Context, todoId string) error {
 		errMsg := fmt.Sprintf("error deleting todos by id: %s", todoId)
 		s.log.StartLogger("todo_service.go", "DeleteTodoById").Error(errMsg)
 		s.db.RollbackTransaction(tx)
-		return err
+		return status.Error(codes.Internal, err.Error())
 	}
 
 	s.db.CommitTransaction(tx)

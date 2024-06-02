@@ -40,7 +40,7 @@ func (m *Module) StartModule(conf *config.AppConfig, reg *prometheus.Registry) {
 	todoService := services.NewService(db, log, todoRepository, redisCli, trace)
 
 	// handlers
-	todoHandler := event.NewTodoHandler(todoService, trace)
+	todoHandler := event.NewTodoHandler(todoService, trace, log)
 
 	// controllers
 	todoControllers := controllers.NewControllers(todoHandler, trace, metrics)
